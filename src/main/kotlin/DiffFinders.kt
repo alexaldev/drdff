@@ -1,3 +1,4 @@
+import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.Executors
 import java.util.logging.Logger
@@ -11,17 +12,13 @@ sealed class DiffFinder(open val filenames: Pair<String, String>) {
         override fun findDiffs(): DiffResult {
             val (f1, f2) = filenames
 
-            val p1 = extractDirectorySetFromFilename(f1)
-            val p2 = extractDirectorySetFromFilename(f2)
+            val p1: Set<String> = extractDirectorySetFromFilename(f1)
+            val p2: Set<String> = extractDirectorySetFromFilename(f2)
 
             logger.info(LOG_COMPUTING_DIFFERENCES)
             val resultFilenames = p1.includedOnlyInSelf(p2).sorted().toSet()
-            val p1FullPaths = Paths.get(f1).filenamesToFullPath
-            return DiffResult(
-                resultFilenames.size,
-                (resultFilenames.size.toFloat() / p2.size.toFloat()) * 10000,
-                resultFilenames.map { p1FullPaths[it] ?: it }.toSet()
-            )
+
+            return DiffResult.from(resultFilenames, Paths.get(f1), p2)
         }
 
         private fun extractDirectorySetFromFilename(f: String): Set<String> {
@@ -64,14 +61,8 @@ sealed class DiffFinder(open val filenames: Pair<String, String>) {
             }
 
             executor.shutdown()
-
-            val p1FullPaths = Paths.get(f1).filenamesToFullPath
-
-            return DiffResult(
-                result.size,
-                (result.size.toFloat() / searchIn.size.toFloat()) * 10000,
-                result.map { p1FullPaths[it] ?: it }.toSet()
-            )
+            
+            return DiffResult.from(result, Paths.get(f1), searchIn)
         }
 
         override val className: String
@@ -96,13 +87,31 @@ data class DiffResult(
     val missingFilesCount: Int,
     val missingPercentage: Float,
     val missingFiles: Set<String>
-)
+) {
+    companion object {
+        fun from(resultFilenames: Set<String>, pathToSearch: Path, pathSearchIn: Set<String>): DiffResult {
+
+            val pathsToSearchFilenamesToFullPath = pathToSearch.filenamesToFullPath
+
+            return DiffResult(
+                resultFilenames.size,
+                (resultFilenames.size.toFloat() / pathSearchIn.size.toFloat()) * 10000,
+                resultFilenames.map { pathsToSearchFilenamesToFullPath[it] ?: it }.toSet()
+            )
+        }
+    }
+}
 
 enum class DiffFinderType {
     Sets, Threads
 }
 
 enum class MultithreadedChunkSizeCalculationPolicy {
+    /**
+     * Splits the list to be searched in equal sized lists.
+     * The number of the lists is equal to the provided thread number,
+     * so that each thread will work on equal sized lists.
+     */
     ThreadsNumber
 }
 
