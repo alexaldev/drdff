@@ -18,7 +18,7 @@ sealed class DiffFinder(open val filenames: Pair<String, String>) {
             logger.info(LOG_COMPUTING_DIFFERENCES)
             val resultFilenames = p1.includedOnlyInSelf(p2).sorted().toSet()
 
-            return DiffResult.from(resultFilenames, Paths.get(f1), p2)
+            return DiffResult.from(resultFilenames, Paths.get(f1), p1)
         }
 
         private fun extractDirectorySetFromFilename(f: String): Set<String> {
@@ -61,8 +61,8 @@ sealed class DiffFinder(open val filenames: Pair<String, String>) {
             }
 
             executor.shutdown()
-            
-            return DiffResult.from(result, Paths.get(f1), searchIn)
+
+            return DiffResult.from(result, Paths.get(f1), thingsToFind.toSet())
         }
 
         override val className: String
@@ -89,13 +89,17 @@ data class DiffResult(
     val missingFiles: Set<String>
 ) {
     companion object {
-        fun from(resultFilenames: Set<String>, pathToSearch: Path, pathSearchIn: Set<String>): DiffResult {
+        fun from(
+            resultFilenames: Set<String>,
+            pathToSearch: Path,
+            pathToSearchDirectorySet: Set<String>
+        ): DiffResult {
 
             val pathsToSearchFilenamesToFullPath = pathToSearch.filenamesToFullPath
 
             return DiffResult(
                 resultFilenames.size,
-                (resultFilenames.size.toFloat() / pathSearchIn.size.toFloat()) * 10000,
+                (resultFilenames.size.toFloat() / pathToSearchDirectorySet.size) * 100,
                 resultFilenames.map { pathsToSearchFilenamesToFullPath[it] ?: it }.toSet()
             )
         }
@@ -115,20 +119,10 @@ enum class MultithreadedChunkSizeCalculationPolicy {
     ThreadsNumber
 }
 
-abstract class DiffFinderCreator {
-    abstract fun createDiffFinder(type: DiffFinderType): DiffFinder
-}
-
-class BruteforceDiffFinderCreator(
-    private val filenames: Pair<String, String>
-) : DiffFinderCreator() {
-    override fun createDiffFinder(type: DiffFinderType): DiffFinder {
-        return when (type) {
-            DiffFinderType.Sets -> DiffFinder.WithSetsDiffFinder(filenames)
-            DiffFinderType.Threads -> DiffFinder.MultithreadedDiffFinder(
-                filenames,
-                DiffFinder.MultithreadedDiffFinder.Config(8, MultithreadedChunkSizeCalculationPolicy.ThreadsNumber)
-            )
-        }
+fun createDiffFinder(filenames: Pair<String, String>, type: DiffFinderType, threads: Int = 1): DiffFinder {
+    return when (type) {
+        DiffFinderType.Sets -> DiffFinder.WithSetsDiffFinder(filenames)
+        DiffFinderType.Threads -> DiffFinder.MultithreadedDiffFinder(filenames,
+            DiffFinder.MultithreadedDiffFinder.Config(threads, MultithreadedChunkSizeCalculationPolicy.ThreadsNumber))
     }
 }
