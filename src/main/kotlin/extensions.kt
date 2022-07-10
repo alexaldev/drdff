@@ -25,6 +25,9 @@ fun Path.directoryTreeSet(): Set<String> {
         .collect(Collectors.toSet())
 }
 
+val Path.filenamesToFullPath: Map<String, String>
+    get() = Files.walk(this).collect(Collectors.toSet()).associate { it.name to it.toString() }
+
 val File.directoryTreeSet: MutableSet<String>
     get() = Files.walk(Paths.get(this.name))
         .map { it.name }
@@ -36,3 +39,6 @@ fun <T : Any> File.fillWith(things: Iterable<T>, transform: (T) -> String = { it
         things.map(transform).forEach { out.write(it); out.newLine() }
     }
 }
+
+val <T> List<T>.sizeIsEven: Boolean
+    get() = this.size % 2 == 0

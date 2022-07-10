@@ -1,5 +1,3 @@
-package files
-
 import java.util.concurrent.Callable
 
 class Searcher<V>(
@@ -19,5 +17,14 @@ class ListSearcher<V>(
         return lv.filter {
             it !in searchIn
         }
+    }
+}
+
+class SetDiffFinder<V: Any>(
+    val toSearch: Set<V>,
+    val searchIn: Set<V>
+) : Callable<Set<V>> {
+    override fun call(): Set<V> {
+        return toSearch.includedOnlyInSelf(searchIn)
     }
 }

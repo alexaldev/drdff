@@ -1,54 +1,59 @@
-import files.ListSearcher
-import java.nio.file.Files
-import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.Executors
-import java.util.stream.Collectors
-import kotlin.io.path.name
+import java.util.logging.Logger
 
 sealed class DiffFinder(open val filenames: Pair<String, String>) {
-    abstract fun findDiffs(): Set<String>
+    abstract fun findDiffs(): DiffResult
+    protected val logger: Logger = Logger.getLogger(className)
+    protected abstract val className: String
 
     class WithSetsDiffFinder(override val filenames: Pair<String, String>) : DiffFinder(filenames) {
-        override fun findDiffs(): Set<String> {
+        override fun findDiffs(): DiffResult {
             val (f1, f2) = filenames
-            println("Constructing directory tree for $f1")
-            val p1 = Paths.get(f1).directoryTreeSet()
-            println("Completed. Files found: ${p1.size}")
-            println("Constructing directory tree for $f2")
-            val p2 = Paths.get(f2).directoryTreeSet()
-            println("Completed. Files found: ${p2.size}")
-            println("Computing differences...")
+
+            val p1 = extractDirectorySetFromFilename(f1)
+            val p2 = extractDirectorySetFromFilename(f2)
+
+            logger.info(LOG_COMPUTING_DIFFERENCES)
             val resultFilenames = p1.includedOnlyInSelf(p2).sorted().toSet()
-            val p1FullPaths: Map<String, String> = Files.walk(Paths.get(f1)).collect(Collectors.toList()).associate { it.name to it.toString() }
-            return resultFilenames.map { p1FullPaths[it] ?: it }.toSet()
+            val p1FullPaths = Paths.get(f1).filenamesToFullPath
+            return DiffResult(
+                resultFilenames.size,
+                (resultFilenames.size.toFloat() / p2.size.toFloat()) * 10000,
+                resultFilenames.map { p1FullPaths[it] ?: it }.toSet()
+            )
         }
+
+        private fun extractDirectorySetFromFilename(f: String): Set<String> {
+            logger.info(LOG_CONSTRUCT_DIRECTORY_TREE + f)
+            val p = Paths.get(f).directoryTreeSet()
+            logger.info(LOG_CONSTRUCTION_COMPLETED + p.size)
+            return p
+        }
+
+        override val className: String
+            get() = WithSetsDiffFinder::class.simpleName!!
     }
 
     class MultithreadedDiffFinder(
         override val filenames: Pair<String, String>,
-        val config: Config
+        private val config: Config
     ) : DiffFinder(filenames) {
-        override fun findDiffs(): Set<String> {
+        override fun findDiffs(): DiffResult {
 
             val (f1, f2) = filenames
-            println("Constructing the directory trees...")
+            logger.info(LOG_CONSTRUCTION_DIRECTORY_TREES)
             val thingsToFind = Paths.get(f1).directoryTreeSet().toList()
-            val searchIn = Paths.get(f2).directoryTreeSet().toList()
+            val searchIn = Paths.get(f2).directoryTreeSet()
 
-            println("Creating caches...")
-            val sublistsSize = thingsToFind.size / config.numOfThreads
-
-            val thingsToFindSubLists: List<List<String>> = List(config.numOfThreads) {
-                thingsToFind.subList(it * sublistsSize, (it * sublistsSize) + sublistsSize)
-            }
+            val thingsToFindSubLists = chunkSearchCollection(thingsToFind).map { it.toSet() }
 
             val executor = Executors.newFixedThreadPool(config.numOfThreads)
 
-            println("Computing differences...")
+            logger.info(LOG_COMPUTING_DIFFERENCES)
             val futures = executor.invokeAll(
                 thingsToFindSubLists.map {
-                    ListSearcher(it, searchIn)
+                    SetDiffFinder(it, searchIn)
                 }
             )
 
@@ -59,17 +64,46 @@ sealed class DiffFinder(open val filenames: Pair<String, String>) {
             }
 
             executor.shutdown()
-            return result
+
+            val p1FullPaths = Paths.get(f1).filenamesToFullPath
+
+            return DiffResult(
+                result.size,
+                (result.size.toFloat() / searchIn.size.toFloat()) * 10000,
+                result.map { p1FullPaths[it] ?: it }.toSet()
+            )
+        }
+
+        override val className: String
+            get() = MultithreadedDiffFinder::class.simpleName!!
+
+
+        private fun <T> chunkSearchCollection(c: List<T>): List<List<T>> {
+            val sublistSize = when (config.chunkSizeCalculationPolicy) {
+                MultithreadedChunkSizeCalculationPolicy.ThreadsNumber -> c.size / config.numOfThreads
+            }
+            return c.chunked(sublistSize)
         }
 
         class Config(
-            val numOfThreads: Int
+            val numOfThreads: Int,
+            val chunkSizeCalculationPolicy: MultithreadedChunkSizeCalculationPolicy
         )
     }
 }
 
+data class DiffResult(
+    val missingFilesCount: Int,
+    val missingPercentage: Float,
+    val missingFiles: Set<String>
+)
+
 enum class DiffFinderType {
     Sets, Threads
+}
+
+enum class MultithreadedChunkSizeCalculationPolicy {
+    ThreadsNumber
 }
 
 abstract class DiffFinderCreator {
@@ -84,7 +118,7 @@ class BruteforceDiffFinderCreator(
             DiffFinderType.Sets -> DiffFinder.WithSetsDiffFinder(filenames)
             DiffFinderType.Threads -> DiffFinder.MultithreadedDiffFinder(
                 filenames,
-                DiffFinder.MultithreadedDiffFinder.Config(8)
+                DiffFinder.MultithreadedDiffFinder.Config(8, MultithreadedChunkSizeCalculationPolicy.ThreadsNumber)
             )
         }
     }
