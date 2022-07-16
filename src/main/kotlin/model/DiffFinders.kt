@@ -3,6 +3,10 @@ import java.nio.file.Paths
 import java.util.concurrent.Executors
 import java.util.logging.Logger
 
+enum class DiffCalculatorState {
+    Indle, Constructing_directories, Calculating
+}
+
 sealed class DiffFinder(open val filenames: Pair<String, String>) {
     abstract fun findDiffs(): DiffResult
     protected val logger: Logger = Logger.getLogger(className)
