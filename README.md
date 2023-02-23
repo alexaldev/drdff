@@ -1,14 +1,17 @@
-# TODOs for version 1.0.0
+# drdf
 
-- [ ] New packaging
-- [ ] Rename `Differs` to `Calculators`.
-- [ ] Replace Driver with CLI ui layering.
-- [ ] Integrate base classes for `Observable` pattern. 
-- [ ] Expose a `State` object in `Calculators` and observe it on the outside.
-- [ ] Consider integration of Decorator pattern for Calculators.
+`drdf` is a utility program which computes file differences between 2 (for now) given directories. One main use case is to easily find out which files contained in one directory are missing from another one. 
 
-## Feature requests
-- [ ] _Intermediate:_ Ability to compare one directory against multiple.
-- [ ] _Intermediate:_ Ability to compare multiple directories against multiple ones in pairs.
-- [ ] _Hard:_ Ability to choose file comparison algorithm(e.g. file MD5). Currently only filename is supported.
-- [ ] 
+For example, given the following directory trees: 
+
+.  
+├── d1  
+│   └── foo1  
+└── d2  
+   ├── d3  
+   │   └── foo3  
+   └── foo2
+
+`drdf` with search directory *d1* will output *foo1* missing from *d2*. 
+
+# 
