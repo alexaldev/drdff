@@ -2,6 +2,7 @@ package domain
 
 import utils.HasObservers
 import utils.ListBackedObservable
+import utils.requireState
 
 class DrdffEngine private constructor(
     private val config: EngineConfig,
@@ -22,7 +23,6 @@ class DrdffEngine private constructor(
         }
     }
 
-
     var state: State = State.Idle
         set(value) {
             field = value
@@ -42,12 +42,29 @@ class DrdffEngine private constructor(
     }
 
     fun compute(input: UserInput): DrdffResult {
-        state = State.Computing(ComputationProgress(0))
-        return DrdffResult()
+
+        requireEngineIdleness()
+
+        updateStateTo(State.Computing(ComputationProgress(0)))
+
+        val result = DrdffResult()
+
+        return result
     }
 
     fun compute(input: UserInput, result: (DrdffResult) -> Unit) {
         result(compute(input))
+    }
+
+    fun shutdown() {
+        updateStateTo(State.Idle)
+    }
+
+    private fun updateStateTo(state: State) {
+        this.state = state
+    }
+    private fun requireEngineIdleness() {
+        requireState(this.state == State.Idle) { "An operation is already running, cannot execute more." }
     }
 }
 
