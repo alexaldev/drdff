@@ -14,6 +14,8 @@ repositories {
 dependencies {
     testImplementation(kotlin("test"))
     implementation("com.github.ajalt.clikt:clikt:3.5.0")
+    implementation("io.github.microutils:kotlin-logging-jvm:2.0.11")
+    implementation(kotlin("stdlib-jdk8"))
 }
 
 tasks.test {
@@ -22,4 +24,12 @@ tasks.test {
 
 tasks.withType<KotlinCompile>() {
     kotlinOptions.jvmTarget = "1.8"
+}
+val compileKotlin: KotlinCompile by tasks
+compileKotlin.kotlinOptions {
+    jvmTarget = "1.8"
+}
+val compileTestKotlin: KotlinCompile by tasks
+compileTestKotlin.kotlinOptions {
+    jvmTarget = "1.8"
 }
