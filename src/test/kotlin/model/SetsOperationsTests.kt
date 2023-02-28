@@ -42,16 +42,16 @@ fun oneMillion(): Set<Int> {
 fun evensUpToOneMillion(): Set<Int> {
     return (0..1_000_000)
         .filter { it.isEven }
-        .fold(mutableSetOf()) { acc, i -> acc.addAndReturn(i) }
+        .fold(mutableSetOf()) { acc, i -> acc.addAndReturnSelf(i) }
 }
 
 fun oddsUpToOneMillion(): Set<Int> {
     return (0..1_000_000)
         .filter { it.isOdd }
-        .fold(mutableSetOf()) { acc, i -> acc.addAndReturn(i) }
+        .fold(mutableSetOf()) { acc, i -> acc.addAndReturnSelf(i) }
 }
 
-fun <T : Any> MutableSet<T>.addAndReturn(t: T): MutableSet<T> {
+fun <T : Any> MutableSet<T>.addAndReturnSelf(t: T): MutableSet<T> {
     this += t
     return this
 }

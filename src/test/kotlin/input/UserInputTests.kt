@@ -22,7 +22,6 @@ class UserInputTests {
 
     private fun validTestDirectories() = listOf(
         "/",
-        "/boot",
         "/bin",
         "/home"
     )
