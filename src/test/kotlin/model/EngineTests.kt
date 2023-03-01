@@ -1,10 +1,6 @@
 package model
 
-import domain.ComputationProgress
-import domain.DrdffEngine
-import domain.DrdffResult
-import domain.EngineConfig
-import domain.UserInput
+import domain.*
 import utils.isOdd
 import utils.oneThousand
 import kotlin.test.*
@@ -18,17 +14,9 @@ class EngineTests {
     @BeforeTest
     fun setUp() {
         val engineSetup = EngineConfig.default()
-        testEngine = DrdffEngine.from(engineSetup)
+        testEngine = DrdffEngine.with(engineSetup)
         fakeUserInput = UserInput("src/test/resources/search_for_files_from", "src/test/resources/search_for_files_in")
         testEngine.shutdown()
-    }
-
-    @Test
-    fun `Drdff#compute function is a blocking one that  produces a non-null DifferenceResult object`() {
-
-        val testResult: DrdffResult = testEngine.compute(fakeUserInput)
-
-        assertNotNull(testResult)
     }
 
     @Test
@@ -42,15 +30,7 @@ class EngineTests {
     @Test
     fun `engine is in indle state when initialized`() {
         testEngine = DrdffEngine.default()
-       assertEquals(DrdffEngine.State.Idle, testEngine.state)
-    }
-
-    @Test
-    fun `engine gets in computing state without progression  when a computation is requested`() {
-        testEngine = DrdffEngine.default()
-        assertEquals(DrdffEngine.State.Idle, testEngine.state)
-        testEngine.compute(fakeUserInput)
-        assertEquals(DrdffEngine.State.Computing(ComputationProgress(0)), testEngine.state)
+       assertEquals(State.Idle, testEngine.state)
     }
 
     @Test

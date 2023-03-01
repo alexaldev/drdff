@@ -1,24 +1,25 @@
 package domain
 
+import includedOnlyInSelf
+import kotlinx.coroutines.*
 import utils.HasObservers
 import utils.ListBackedObservable
 import utils.requireState
+import kotlin.time.ExperimentalTime
+import kotlin.time.measureTimedValue
 
 class DrdffEngine private constructor(
     private val config: EngineConfig,
     private val listBackedObservable: ListBackedObservable<State, (State) -> Unit> = ListBackedObservable()
-) : HasObservers<(DrdffEngine.State) -> Unit> by listBackedObservable {
+) : HasObservers<(State) -> Unit> by listBackedObservable {
 
-    sealed class State {
-        object Idle : State()
-        data class Computing(val progress: ComputationProgress) : State()
-    }
+    private val directoryResolver = config.directoryResolver
 
     companion object {
 
         fun default() = DrdffEngine(EngineConfig.default())
 
-        fun from(config: EngineConfig): DrdffEngine {
+        fun with(config: EngineConfig): DrdffEngine {
             return DrdffEngine(config)
         }
     }
@@ -41,37 +42,83 @@ class DrdffEngine private constructor(
         listBackedObservable.unsubscribe(obs)
     }
 
+    @Deprecated("Use compute(UserInput, (Result) -> Unit) instead. Does nothing.")
     fun compute(input: UserInput): DrdffResult {
+        TODO()
+    }
+
+    private suspend fun computeDifferences(d1: Set<String>, d2: Set<String>): Set<String> {
+        return d1.includedOnlyInSelf(d2)
+    }
+
+    @OptIn(ExperimentalTime::class)
+    fun compute(input: UserInput, resultHandler: (DrdffResult) -> Unit) {
 
         requireEngineIdleness()
 
-        updateStateTo(State.Computing(ComputationProgress(0)))
+        var searchForSize: Int
 
-        val result = DrdffResult()
+        val (res, elapsed) = measureTimedValue {
 
-        return result
+            val (searchFor, searchIn) = searchPair(input)
+            searchForSize = searchFor.size
+
+            updateStateTo(State.ResolvingDifferences)
+            searchFor.includedOnlyInSelf(searchIn)
+        }
+
+        resultHandler(
+            DrdffResult(
+                missingFilenames = res,
+                percentageMissing = ((res.size.toFloat() / searchForSize.toFloat()) * 100),
+                duration = elapsed.inWholeMilliseconds
+            )
+        )
+        updateStateTo(State.Idle)
     }
 
-    fun compute(input: UserInput, result: (DrdffResult) -> Unit) {
-        result(compute(input))
+    private fun searchPair(input: UserInput): Pair<Set<String>, Set<String>> {
+        updateStateTo(State.ResolvingDirectories(input.d1))
+        val searchFor = directoryResolver.getContents(input.d1)
+        updateStateTo(State.ResolvingDirectories(input.d2))
+        val searchIn = directoryResolver.getContents(input.d2)
+        return Pair(searchFor, searchIn)
     }
 
     fun shutdown() {
         updateStateTo(State.Idle)
     }
 
+    private fun extractComputationContents(userInput: UserInput): List<Set<String>> {
+        return listOf(
+            directoryResolver.getContents(userInput.d1),
+            directoryResolver.getContents(userInput.d2)
+        )
+    }
+
     private fun updateStateTo(state: State) {
         this.state = state
     }
+
     private fun requireEngineIdleness() {
         requireState(this.state == State.Idle) { "An operation is already running, cannot execute more." }
     }
 }
 
 data class ComputationProgress(val percentage: Int)
-class DrdffResult
-class EngineConfig private constructor() {
+data class DrdffResult(
+    val missingFilenames: Set<String>,
+    val percentageMissing: Float,
+    val duration: Long
+) {
+    override fun toString() = "$missingFilenames\n| ${percentageMissing}% \n| ${duration}ms"
+}
+
+class EngineConfig private constructor(
+    val directoryResolver: DirectoryResolver = NativeDirectoryResolver()
+) {
     companion object {
         fun default() = EngineConfig()
+        fun with(resolver: DirectoryResolver) = EngineConfig(resolver)
     }
 }

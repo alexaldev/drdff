@@ -13,5 +13,3 @@ For example, given the following directory trees:
 └── foo2
 
 `drdf` with search directory *d1* will output *foo1* missing from *d2*. 
-
-# 

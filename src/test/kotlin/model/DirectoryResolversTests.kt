@@ -1,10 +1,9 @@
 package model
 
+import domain.DirectoryResolver
 import fakeUserInput
 import java.io.File
-import java.nio.file.Files
-import java.nio.file.Path
-import java.util.stream.Collectors
+import java.nio.file.Paths
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.name
 import kotlin.test.BeforeTest
@@ -22,36 +21,6 @@ class DirectoryResolversTests {
     @Test
     fun `A directoryResolver can parse a UserInput`() {
         val fakeInput = fakeUserInput
-        val result = testResolver.getContents(fakeInput.d1)
     }
 }
 
-fun interface DirectoryResolver {
-    fun getContents(directory: String): Set<String>
-}
-
-class NativeDirectoryResolver : DirectoryResolver {
-    override fun getContents(directory: String): Set<String> {
-        return Files.walk(Path.of(directory))
-            .map { it.name }
-            .collect(Collectors.toSet())
-    }
-}
-
-class KotlinDirectoryResolver : DirectoryResolver {
-    override fun getContents(directory: String): Set<String> {
-        return File(directory)
-            .walkBottomUp()
-            .map { it.name }
-            .toCollection(mutableSetOf())
-    }
-}
-
-class KotlinPathListDirectoriesResolver : DirectoryResolver {
-    override fun getContents(directory: String): Set<String> {
-        return Path.of(directory)
-            .listDirectoryEntries()
-            .map { it.name }
-            .toSet()
-    }
-}

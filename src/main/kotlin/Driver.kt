@@ -1,15 +1,35 @@
-import domain.DrdffEngine
-import domain.UserInput
+import domain.*
 import mu.KotlinLogging
+import utils.Project
+
+private val logger = KotlinLogging.logger {}
 
 fun main(args: Array<String>) {
 
-    val logger = KotlinLogging.logger("main")
+    logger.info { Project.version }
 
     val input = UserInput("src/test/resources/search_for_files_from", "src/test/resources/search_for_files_in")
-    val testEngine = DrdffEngine.default()
+
+    val config = EngineConfig.with(KotlinPathListDirectoriesResolver())
+    val testEngine = DrdffEngine.with(config)
+
     testEngine.registerStateObserver {
-        println("I am getting triggered")
+        when (it) {
+            is State.Idle -> {
+                logger.info { "Engine idle" }
+            }
+
+            is State.ResolvingDifferences -> {
+                logger.info { "Resolving differences" }
+            }
+
+            is State.ResolvingDirectories -> {
+                logger.info { "Resolving directory: ${it.directory}" }
+            }
+        }
     }
-    testEngine.compute(input)
+
+    testEngine.compute(input) {
+        logger.info { it.toString() }
+    }
 }
