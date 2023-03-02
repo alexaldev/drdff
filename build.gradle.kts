@@ -3,7 +3,7 @@ import java.io.FileOutputStream
 import java.util.Properties
 
 plugins {
-    kotlin("jvm") version "1.6.0"
+    kotlin("jvm") version "1.8.0"
 }
 
 version = "0.0.1"

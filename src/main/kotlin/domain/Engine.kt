@@ -71,7 +71,8 @@ class DrdffEngine private constructor(
             DrdffResult(
                 missingFilenames = res,
                 percentageMissing = ((res.size.toFloat() / searchForSize.toFloat()) * 100),
-                duration = elapsed.inWholeMilliseconds
+                duration = elapsed.inWholeMilliseconds,
+                directoriesCompared = "$"
             )
         )
         updateStateTo(State.Idle)
@@ -80,7 +81,6 @@ class DrdffEngine private constructor(
     private fun searchPair(input: UserInput): Pair<Set<String>, Set<String>> {
         updateStateTo(State.ResolvingDirectories(input.d1))
         val searchFor = directoryResolver.getContents(input.d1)
-        updateStateTo(State.ResolvingDirectories(input.d2))
         val searchIn = directoryResolver.getContents(input.d2)
         return Pair(searchFor, searchIn)
     }
@@ -107,6 +107,7 @@ class DrdffEngine private constructor(
 
 data class ComputationProgress(val percentage: Int)
 data class DrdffResult(
+    val directoriesCompared: String,
     val missingFilenames: Set<String>,
     val percentageMissing: Float,
     val duration: Long
