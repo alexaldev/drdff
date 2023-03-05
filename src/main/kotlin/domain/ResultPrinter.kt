@@ -2,20 +2,16 @@ package domain
 
 import mu.KLogger
 import utils.Project
-import java.io.File
-import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.text.SimpleDateFormat
-import java.util.Date
-import kotlin.io.path.bufferedWriter
+import java.util.*
+import kotlin.io.path.*
 
 class HeaderProvider(
     private val versionProvider: VersionProvider
 ) {
     fun createHeader(): String {
-        return "------------ DRDFF - Directories diff finder ----------- \n" +
-                versionProvider.getAppVersion()
+        return "------------ DRDFF v.${versionProvider.getAppVersion()} - Directories diff finder -----------"
     }
 }
 
@@ -32,7 +28,7 @@ class PropertiesVersionProvider : VersionProvider {
 
 class DateProvider {
     fun createDate(): String {
-        return SimpleDateFormat("dd/MM/YYYY").format(Date())
+        return SimpleDateFormat("dd/MM/YYYY HH:mm").format(Date())
     }
 }
 
@@ -44,23 +40,29 @@ sealed class ResultPrinter {
     class FileResultPrinter(
         private val resultFilePath: Path,
         private val versionProvider: VersionProvider,
-        private val dateProvider: DateProvider) : ResultPrinter() {
+        private val dateProvider: DateProvider,
+        private val headerProvider: HeaderProvider
+    ) : ResultPrinter() {
         override fun printResult(result: DrdffResult) {
-            Files.createFile(resultFilePath).bufferedWriter().use {
-                it.appendLine(versionProvider.getAppVersion())
-                it.newLine()
-                it.appendLine(dateProvider.createDate())
-                it.newLine()
-                it.appendLine("Directories compared: ${result.directoriesCompared}")
-                it.appendLine("------------------------------------")
-                result.missingFilenames.forEach { missingFile -> it.appendLine(missingFile) }
-            }
+
+            Path(resultFilePath.pathString).deleteIfExists()
+
+            Path(resultFilePath.pathString)
+                .createFile()
+                .bufferedWriter()
+                .use {
+                    it.appendLine(headerProvider.createHeader())
+                    it.appendLine(dateProvider.createDate())
+                    it.appendLine("Directories compared: ${result.directoriesCompared}")
+                    it.appendLine("------------------------------------")
+                    result.missingFilenames.forEach { missingFile -> it.appendLine(missingFile) }
+                }
         }
     }
 
     class StdOutResultPrinter(val logger: KLogger) : ResultPrinter() {
         override fun printResult(result: DrdffResult) {
-
+            TODO()
         }
     }
 }
