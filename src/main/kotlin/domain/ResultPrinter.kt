@@ -52,7 +52,9 @@ sealed class ResultPrinter {
                 .use {
                     it.appendLine(headerProvider.createHeader())
                     it.appendLine(dateProvider.createDate())
-                    it.appendLine("Directories compared: ${result.directoriesCompared}")
+                    it.appendLine(result.directoriesCompared)
+                    it.appendLine("Percentage of files missing: ${"%.2f".format(result.percentageMissing)}%")
+                    it.appendLine("Here are the files not found")
                     it.appendLine("------------------------------------")
                     result.missingFilenames.forEach { missingFile -> it.appendLine(missingFile) }
                 }

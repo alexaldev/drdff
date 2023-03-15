@@ -15,4 +15,8 @@ data class UserInput(val d1: String, val d2: String) {
         d1.isDirectoryAndRequired()
         d2.isDirectoryAndRequired()
     }
+
+    override fun toString(): String {
+        return "For every file in $d1, I tried to find it in $d2"
+    }
 }

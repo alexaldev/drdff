@@ -72,7 +72,7 @@ class DrdffEngine private constructor(
                 missingFilenames = res,
                 percentageMissing = ((res.size.toFloat() / searchForSize.toFloat()) * 100),
                 duration = elapsed.inWholeMilliseconds,
-                directoriesCompared = "$"
+                directoriesCompared = input.toString()
             )
         )
         updateStateTo(State.Idle)
