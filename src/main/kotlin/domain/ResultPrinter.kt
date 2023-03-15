@@ -39,9 +39,8 @@ sealed class ResultPrinter {
 
     class FileResultPrinter(
         private val resultFilePath: Path,
-        private val versionProvider: VersionProvider,
-        private val dateProvider: DateProvider,
-        private val headerProvider: HeaderProvider
+        private val dateProvider: DateProvider = DateProvider(),
+        private val headerProvider: HeaderProvider = HeaderProvider(PropertiesVersionProvider())
     ) : ResultPrinter() {
         override fun printResult(result: DrdffResult) {
 

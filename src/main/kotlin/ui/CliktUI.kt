@@ -5,11 +5,15 @@ import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.types.int
+import domain.*
+import utils.INTRO_MESSAGE
+import utils.Project
 import utils.logger
+import kotlin.io.path.Path
 
-class RunConfig : CliktCommand() {
+class CommandLineUI : CliktCommand() {
 
-    private val logger by logger()
+    private val logger by logger(Project.name)
 
     private val toSearchDirName by option(
         "-d",
@@ -30,5 +34,23 @@ class RunConfig : CliktCommand() {
 
     override fun run() {
 
+        logger.info { INTRO_MESSAGE }
+
+        DrdffEngine.with(EngineConfig.withResolver(NativeDirectoryResolver()))
+            .compute(mapInputToUserInput()) { computeResult ->
+                createResultPrinterBasedOnOptions().printResult(computeResult)
+            }
+    }
+
+    private fun mapInputToUserInput(): UserInput {
+        return UserInput(toSearchDirName, searchInDirName)
+    }
+
+    fun createResultPrinterBasedOnOptions(): ResultPrinter = resultsFileName?.let {
+        return ResultPrinter.FileResultPrinter(
+            resultFilePath = Path(it),
+        )
+    } ?: kotlin.run {
+        return ResultPrinter.StdOutResultPrinter(logger)
     }
 }

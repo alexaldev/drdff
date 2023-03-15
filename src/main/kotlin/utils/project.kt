@@ -11,6 +11,10 @@ object Project {
             return versionProperties.getProperty("version") ?: "unknown"
         }
 
+    val name = "Drdff"
+
+    val nameAndVersion = "$name v.$version"
+
     init {
         val versionPropertiesFile = this.javaClass.getResourceAsStream("/version.properties")
         versionProperties.load(versionPropertiesFile)

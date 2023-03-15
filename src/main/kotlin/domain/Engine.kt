@@ -112,7 +112,9 @@ data class DrdffResult(
     val percentageMissing: Float,
     val duration: Long
 ) {
-    override fun toString() = "$missingFilenames\n| ${percentageMissing}% \n| ${duration}ms"
+    override fun toString() = "$missingFilenames\n| " +
+            "%.2f".format(percentageMissing) + "%\n" +
+            "${duration}ms"
 }
 
 class EngineConfig private constructor(
@@ -120,6 +122,6 @@ class EngineConfig private constructor(
 ) {
     companion object {
         fun default() = EngineConfig()
-        fun with(resolver: DirectoryResolver) = EngineConfig(resolver)
+        fun withResolver(resolver: DirectoryResolver) = EngineConfig(resolver)
     }
 }

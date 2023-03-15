@@ -17,7 +17,6 @@ class ResultWritersTests {
     fun setUp() {
         testFilePrinter = ResultPrinter.FileResultPrinter(
             resultFilePath = Path(outputFilePath),
-            versionProvider = PropertiesVersionProvider(),
             dateProvider = DateProvider(),
             headerProvider = HeaderProvider(
                 PropertiesVersionProvider()
