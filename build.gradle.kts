@@ -1,4 +1,3 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.FileOutputStream
 import java.util.*
 
@@ -28,18 +27,6 @@ tasks.test {
     useJUnit()
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
-}
-val compileKotlin: KotlinCompile by tasks
-compileKotlin.kotlinOptions {
-    jvmTarget = "1.8"
-}
-val compileTestKotlin: KotlinCompile by tasks
-compileTestKotlin.kotlinOptions {
-    jvmTarget = "1.8"
-}
-
 val generatedVersionDir = "$buildDir/generated-version"
 
 sourceSets {
@@ -49,6 +36,17 @@ sourceSets {
         }
     }
 }
+
+tasks.jar {
+    manifest.attributes["Main-Class"] = "DriverKt"
+    val dependencies = configurations
+        .runtimeClasspath
+        .get()
+        .map(::zipTree) // OR .map { zipTree(it) }
+    from(dependencies)
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 tasks.register("generateVersionProperties") {
     doLast {
         val propertiesFile = file("$generatedVersionDir/version.properties")
