@@ -31,17 +31,19 @@ class EngineTests {
     }
 
     @Test
-    fun `engine is in indle state when initialized`() {
-        testEngine = DrdffEngine.default()
-       assertEquals(State.Idle, testEngine.state)
+    fun `engine can receive EngineRunArguments in its compute interface`() {
+
+        val fakeArguments = EngineArguments.PureStringArgs(setOf("f1, f2, f3, f4"), setOf("f1, f4, f5, f6"))
+
+        testEngine.compute(fakeArguments) {
+            // Ignore
+        }
     }
 
     @Test
-    fun `engine cannot process any data if it is currently computing`() {
-//        testEngine.compute(fakeUserInput)
-//        assertFailsWith(IllegalStateException::class) {
-//            testEngine.compute(fakeUserInput)
-//        }
+    fun `engine is in indle state when initialized`() {
+        testEngine = DrdffEngine.default()
+        assertEquals(State.Idle, testEngine.state)
     }
 
     @Test
@@ -49,12 +51,17 @@ class EngineTests {
 
         val expectedFilesMissing =
             oneThousand()
-            .filter { it.isOdd }
-            .map { "src/test/resources/search_for_files_from/$it" }
+                .filter { it.isOdd }
+                .map { "$it" }
+                .sorted()
+                .toMutableSet()
+
+        expectedFilesMissing += "search_for_files_from" // Also root directory
 
         testEngine.compute(fakeUserInput) {
-//            assertEquals(50, it.percentage)
-//            assertEquals(expectedFilesMissing, it.missingFilenames)
+
+            assertEquals(50f, it.percentageMissing)
+            assertEquals(expectedFilesMissing, it.missingFilenames)
         }
     }
 
