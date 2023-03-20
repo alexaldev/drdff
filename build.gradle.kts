@@ -25,6 +25,16 @@ dependencies {
 
 tasks.test {
     useJUnit()
+    testLogging {
+
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        events = mutableSetOf(
+            org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED,
+            org.gradle.api.tasks.testing.logging.TestLogEvent.SKIPPED,
+            org.gradle.api.tasks.testing.logging.TestLogEvent.PASSED
+        )
+        showStandardStreams = true
+    }
 }
 
 val generatedVersionDir = "$buildDir/generated-version"
