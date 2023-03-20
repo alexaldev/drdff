@@ -29,8 +29,14 @@ class CommandLineUI : CliktCommand() {
 
     private val resultsFileName by option("-o", "--results", help = "Filename to store the results")
 
-    private val threadsCount by option("-t", "--threads", help = "Specify the number of threads to run the application").int()
+    private val threadsCount by option(
+        "-t",
+        "--threads",
+        help = "Specify the number of threads to run the application"
+    ).int()
         .default(1)
+
+    private val fileExtension by option("-x", "--extension", help = "Specify the extension of the files to be searched")
 
     override fun run() {
 
