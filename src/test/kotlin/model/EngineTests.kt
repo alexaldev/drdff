@@ -65,7 +65,11 @@ class EngineTests {
         }
     }
 
-    private val keepOnlyOdds : (Set<Int>) -> List<Int> = {
-        it.filter { n -> n.isOdd }
+    @Test
+    fun `engine can be configured to search specific file extensions`() {
+        val fakeExtensions =  listOf("jpg", "pdf")
+        val fakeConfig = EngineConfig.config {
+            setExtensions(fakeExtensions)
+        }
     }
 }

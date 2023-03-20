@@ -1,9 +1,12 @@
 package ui
 
 import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.parameters.arguments.argument
+import com.github.ajalt.clikt.parameters.groups.mutuallyExclusiveOptions
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
+import com.github.ajalt.clikt.parameters.options.split
 import com.github.ajalt.clikt.parameters.types.int
 import domain.*
 import utils.INTRO_MESSAGE
@@ -36,7 +39,7 @@ class CommandLineUI : CliktCommand() {
     ).int()
         .default(1)
 
-    private val fileExtension by option("-x", "--extension", help = "Specify the extension of the files to be searched")
+    private val filenameExtensions by option("-x", help = "Specify the extensions of the files to be searched separated by comma(,)").split(",")
 
     override fun run() {
 

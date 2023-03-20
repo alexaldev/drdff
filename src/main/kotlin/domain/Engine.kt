@@ -127,11 +127,27 @@ data class DrdffResult(
             "${duration}ms"
 }
 
+typealias FileExtensions = MutableList<String>
+
 class EngineConfig private constructor(
     val directoryResolver: DirectoryResolver = NativeDirectoryResolver()
 ) {
+
+    var extensions : FileExtensions = mutableListOf()
+
+    fun setExtensions(extensions: Collection<String>) {
+        this.extensions.clear()
+        this.extensions.addAll(extensions)
+    }
+
     companion object {
         fun default() = EngineConfig()
         fun withResolver(resolver: DirectoryResolver) = EngineConfig(resolver)
+
+        fun config(init: EngineConfig.() -> Unit): EngineConfig {
+            val result = EngineConfig()
+            result.init()
+            return result
+        }
     }
 }
