@@ -45,7 +45,7 @@ class EngineTests {
         val fakeArguments = EngineArguments.PureStringArgs(setOf("f1, f2, f3, f4"), setOf("f1, f4, f5, f6"))
 
         testEngine.compute(fakeArguments) {
-            // Ignore
+
         }
     }
 
