@@ -129,11 +129,10 @@ data class DrdffResult(
 
 typealias FileExtensions = MutableList<String>
 
-class EngineConfig private constructor(
-    val directoryResolver: DirectoryResolver = NativeDirectoryResolver()
-) {
+class EngineConfig private constructor() {
 
-    var extensions : FileExtensions = mutableListOf()
+    private val extensions: FileExtensions = mutableListOf()
+    var directoryResolver: DirectoryResolver = NativeDirectoryResolver()
 
     fun setExtensions(extensions: Collection<String>) {
         this.extensions.clear()
@@ -142,7 +141,9 @@ class EngineConfig private constructor(
 
     companion object {
         fun default() = EngineConfig()
-        fun withResolver(resolver: DirectoryResolver) = EngineConfig(resolver)
+
+        @Deprecated("Use config() builder function instead.")
+        fun withResolver(resolver: DirectoryResolver) = config { directoryResolver = resolver }
 
         fun config(init: EngineConfig.() -> Unit): EngineConfig {
             val result = EngineConfig()

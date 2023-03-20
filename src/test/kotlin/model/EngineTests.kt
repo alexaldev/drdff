@@ -1,6 +1,9 @@
 package model
 
 import domain.*
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
 import utils.isOdd
 import utils.oneThousand
 import kotlin.test.BeforeTest
@@ -8,17 +11,23 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
+
+
 class EngineTests {
 
     private lateinit var testEngine: DrdffEngine
     private lateinit var engineConfig: EngineConfig
     private lateinit var fakeUserInput: UserInput
 
+    private val aValidDirectoryToSearchIn = "src/test/resources/search_for_files_in"
+    private val aValidDirectoryToSearchFrom = "src/test/resources/search_for_files_from"
+
     @BeforeTest
     fun setUp() {
         val engineSetup = EngineConfig.default()
         testEngine = DrdffEngine.with(engineSetup)
-        fakeUserInput = UserInput("src/test/resources/search_for_files_from", "src/test/resources/search_for_files_in")
+
+        fakeUserInput = UserInput(aValidDirectoryToSearchFrom, aValidDirectoryToSearchIn)
         testEngine.shutdown()
     }
 
@@ -67,9 +76,36 @@ class EngineTests {
 
     @Test
     fun `engine can be configured to search specific file extensions`() {
-        val fakeExtensions =  listOf("jpg", "pdf")
+
+        val fakeUserInput = UserInput(aValidDirectoryToSearchFrom, aValidDirectoryToSearchIn)
+        val fakeExtensions = listOf("jpg", "pdf")
+        val directoryResolver: DirectoryResolver = mockk<NativeDirectoryResolver>()
+
+        every { directoryResolver.getContents(aValidDirectoryToSearchFrom) } returns setOf(
+            "1.jpg",
+            "2.pdf",
+            "3",
+            "4",
+            "5",
+            "happy",
+            "6.pdf"
+        )
+        every { directoryResolver.getContents(aValidDirectoryToSearchIn) } returns setOf("1.jpg", "4", "3")
+
         val fakeConfig = EngineConfig.config {
             setExtensions(fakeExtensions)
+            this.directoryResolver = directoryResolver
+        }
+
+        testEngine = DrdffEngine.with(fakeConfig)
+
+        testEngine.compute(fakeUserInput) {
+            assertEquals(setOf("2.pdf", "6.pdf"), it.missingFilenames)
+        }
+
+        verify {
+            directoryResolver.getContents(aValidDirectoryToSearchFrom)
+            directoryResolver.getContents(aValidDirectoryToSearchIn)
         }
     }
 }
