@@ -8,6 +8,12 @@ import utils.requireState
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTimedValue
 
+typealias ResultHandler = (DrdffResult) -> Unit
+
+sealed class EngineArguments {
+    class PureStringArgs(val s1: Set<String>, val s2: Set<String>) : EngineArguments()
+}
+
 class DrdffEngine private constructor(
     private val config: EngineConfig,
     private val listBackedObservable: ListBackedObservable<State, (State) -> Unit> = ListBackedObservable()
@@ -51,6 +57,10 @@ class DrdffEngine private constructor(
         return d1.includedOnlyInSelf(d2)
     }
 
+    fun compute(args: EngineArguments, resultHandler: ResultHandler) {
+        // TODO()
+    }
+
     @OptIn(ExperimentalTime::class)
     fun compute(input: UserInput, resultHandler: (DrdffResult) -> Unit) {
 
@@ -69,7 +79,7 @@ class DrdffEngine private constructor(
 
         resultHandler(
             DrdffResult(
-                missingFilenames = res,
+                missingFilenames = res.sorted().toSet(),
                 percentageMissing = ((res.size.toFloat() / searchForSize.toFloat()) * 100),
                 duration = elapsed.inWholeMilliseconds,
                 directoriesCompared = input.toString()
