@@ -1,5 +1,5 @@
 ------------ DRDFF v.0.0.1 - Directories diff finder -----------
-21/03/2023 20:30
+21/03/2023 20:56
 d1 | d2
 Percentage of files missing: 40.00%
 Here are the files not found
