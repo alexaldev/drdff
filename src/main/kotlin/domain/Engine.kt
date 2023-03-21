@@ -6,6 +6,7 @@ import utils.HasObservers
 import utils.ListBackedObservable
 import utils.requireState
 import kotlin.time.ExperimentalTime
+import kotlin.time.TimedValue
 import kotlin.time.measureTimedValue
 
 typealias ResultHandler = (DrdffResult) -> Unit
@@ -62,9 +63,9 @@ class DrdffEngine private constructor(
 
         requireEngineIdleness()
 
-        val (resultSetAndCheckedSize, elapsed) = computeDifferences(input)
+        val (resultSetAndCheckSized, elapsed) = computeDifferences(input)
 
-        val (resultSet, checkedSize) = resultSetAndCheckedSize
+        val (resultSet, checkedSize) = resultSetAndCheckSized
 
         resultHandler(
             DrdffResult(
