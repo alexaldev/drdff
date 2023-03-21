@@ -1,12 +1,11 @@
 package ui
 
 import com.github.ajalt.clikt.core.CliktCommand
-import com.github.ajalt.clikt.parameters.arguments.argument
-import com.github.ajalt.clikt.parameters.groups.mutuallyExclusiveOptions
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.options.split
+import com.github.ajalt.clikt.parameters.types.choice
 import com.github.ajalt.clikt.parameters.types.int
 import domain.*
 import utils.INTRO_MESSAGE
@@ -39,20 +38,51 @@ class CommandLineUI : CliktCommand() {
     ).int()
         .default(1)
 
-    private val filenameExtensions by option("-x", help = "Specify the extensions of the files to be searched separated by comma(,)").split(",")
+    private val filenameExtensions by option(
+        "-x",
+        help = "NOT IMPLEMENTED Specify the extensions of the files to be searched separated by comma(,)"
+    ).split(",")
+
+    private val directoryResolver by option(
+        "-w",
+        "--directory-resolver",
+        help = "Algorithm used to extract the directory tree from the provided arguments"
+    ).choice("native", "treewalk", "pathlist").default("native")
+
+    private val setsOperator by option(
+        "-s",
+        "--set-difference",
+        help = "Algorithm used to compute differences between two sets"
+    ).choice("intersect", "distinct").default("intersect")
 
     override fun run() {
 
         logger.info { INTRO_MESSAGE }
 
-        DrdffEngine.with(EngineConfig.withResolver(NativeDirectoryResolver()))
-            .compute(mapInputToUserInput()) { computeResult ->
+        DrdffEngine
+            .with(engineConfigFromArgs())
+            .compute(userInputFromArgs()) { computeResult ->
                 createResultPrinterBasedOnOptions().printResult(computeResult)
             }
     }
 
-    private fun mapInputToUserInput(): UserInput {
+    private fun engineConfigFromArgs(): EngineConfig {
+        return EngineConfig.config {
+            this.directoryResolver = mapResolverChoiceToDomain()
+        }
+    }
+
+    private fun userInputFromArgs(): UserInput {
         return UserInput(toSearchDirName, searchInDirName)
+    }
+
+    private fun mapResolverChoiceToDomain(): DirectoryResolver {
+        return when (directoryResolver) {
+            "native" -> NativeDirectoryResolver()
+            "treewalk" -> KotlinDirectoryResolver()
+            "pathlist" -> KotlinPathListEntriesResolver()
+            else -> NativeDirectoryResolver()
+        }
     }
 
     fun createResultPrinterBasedOnOptions(): ResultPrinter = resultsFileName?.let {

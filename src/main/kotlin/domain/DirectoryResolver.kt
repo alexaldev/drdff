@@ -28,7 +28,7 @@ class KotlinDirectoryResolver : DirectoryResolver {
     }
 }
 
-class KotlinPathListDirectoriesResolver : DirectoryResolver {
+class KotlinPathListEntriesResolver : DirectoryResolver {
     override fun getContents(directory: String): Set<String> {
         return Paths.get(directory)
             .listDirectoryEntries()
