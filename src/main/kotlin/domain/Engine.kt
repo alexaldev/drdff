@@ -1,6 +1,5 @@
 package domain
 
-import includedOnlyInSelf
 import kotlinx.coroutines.*
 import utils.HasObservers
 import utils.ListBackedObservable
@@ -10,7 +9,7 @@ import kotlin.time.TimedValue
 import kotlin.time.measureTimedValue
 
 typealias ResultHandler = (DrdffResult) -> Unit
-
+typealias EngineComputableArg = Pair<Set<String>, Set<String>>
 sealed class EngineArguments {
     class PureStringArgs(val s1: Set<String>, val s2: Set<String>) : EngineArguments()
 }
@@ -21,6 +20,7 @@ class DrdffEngine private constructor(
 ) : HasObservers<(State) -> Unit> by listBackedObservable {
 
     private val directoryResolver = config.directoryResolver
+    private val setsOperator: SetsOperations = config.setsOperations
 
     companion object {
 
@@ -85,11 +85,13 @@ class DrdffEngine private constructor(
 
             updateStateTo(State.ResolvingDifferences)
 
-            Pair(searchFor.includedOnlyInSelf(searchIn), searchFor.size)
+            val output = setsOperator.includedOnlyInSelf(searchFor, searchIn)
+
+            Pair(output, searchFor.size)
         }
     }
 
-    private fun extractSearchPairFrom(input: UserInput): Pair<Set<String>, Set<String>> {
+    private fun extractSearchPairFrom(input: UserInput): EngineComputableArg {
         updateStateTo(State.ResolvingDirectories(input.d1))
         val searchFor = directoryResolver.getContents(input.d1)
         val searchIn = directoryResolver.getContents(input.d2)

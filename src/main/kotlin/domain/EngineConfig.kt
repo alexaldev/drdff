@@ -6,6 +6,7 @@ class EngineConfig private constructor() {
 
     private val extensions: FileExtensions = mutableListOf()
     var directoryResolver: DirectoryResolver = NativeDirectoryResolver()
+    var setsOperations: SetsOperations = ByIntersectOperation()
 
     fun setExtensions(extensions: Collection<String>) {
         this.extensions.clear()
