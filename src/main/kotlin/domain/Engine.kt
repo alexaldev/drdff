@@ -53,10 +53,6 @@ class DrdffEngine private constructor(
         TODO()
     }
 
-    private suspend fun computeDifferences(d1: Set<String>, d2: Set<String>): Set<String> {
-        return d1.includedOnlyInSelf(d2)
-    }
-
     fun compute(args: EngineArguments, resultHandler: ResultHandler) {
         // TODO()
     }
@@ -70,7 +66,7 @@ class DrdffEngine private constructor(
 
         val (res, elapsed) = measureTimedValue {
 
-            val (searchFor, searchIn) = searchPair(input)
+            val (searchFor, searchIn) = extractSearchPairFrom(input)
             searchForSize = searchFor.size
 
             updateStateTo(State.ResolvingDifferences)
@@ -88,7 +84,7 @@ class DrdffEngine private constructor(
         updateStateTo(State.Idle)
     }
 
-    private fun searchPair(input: UserInput): Pair<Set<String>, Set<String>> {
+    private fun extractSearchPairFrom(input: UserInput): Pair<Set<String>, Set<String>> {
         updateStateTo(State.ResolvingDirectories(input.d1))
         val searchFor = directoryResolver.getContents(input.d1)
         val searchIn = directoryResolver.getContents(input.d2)
@@ -97,13 +93,6 @@ class DrdffEngine private constructor(
 
     fun shutdown() {
         updateStateTo(State.Idle)
-    }
-
-    private fun extractComputationContents(userInput: UserInput): List<Set<String>> {
-        return listOf(
-            directoryResolver.getContents(userInput.d1),
-            directoryResolver.getContents(userInput.d2)
-        )
     }
 
     private fun updateStateTo(state: State) {
@@ -115,7 +104,6 @@ class DrdffEngine private constructor(
     }
 }
 
-data class ComputationProgress(val percentage: Int)
 data class DrdffResult(
     val directoriesCompared: String,
     val missingFilenames: Set<String>,
