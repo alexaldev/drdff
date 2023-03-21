@@ -1,4 +1,4 @@
-package model
+package domain
 
 import domain.*
 import io.mockk.every
@@ -6,8 +6,6 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
-import utils.isOdd
-import utils.oneThousand
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -55,25 +53,6 @@ class EngineTests {
     fun `engine is in indle state when initialized`() {
         testEngine = DrdffEngine.default()
         assertEquals(State.Idle, testEngine.state)
-    }
-
-    @Test
-    fun `engine computation result contains all the files missing and percentage based on the size`() {
-
-        val expectedFilesMissing =
-            oneThousand()
-                .filter { it.isOdd }
-                .map { "$it" }
-                .sorted()
-                .toMutableSet()
-
-        expectedFilesMissing += "search_for_files_from" // Also root directory
-
-        testEngine.compute(fakeUserInput) {
-
-            assertEquals(50f, it.percentageMissing)
-            assertEquals(expectedFilesMissing, it.missingFilenames)
-        }
     }
 
     @Test

@@ -1,4 +1,4 @@
-package model
+package domain
 
 import kotlin.test.Test
 
