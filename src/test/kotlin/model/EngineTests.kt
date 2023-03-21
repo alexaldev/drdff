@@ -17,7 +17,8 @@ import kotlin.test.assertNotNull
 class EngineTests {
 
     private lateinit var testEngine: DrdffEngine
-    private lateinit var engineConfig: EngineConfig
+
+    @Deprecated("Will be replaced with a mock object")
     private lateinit var fakeUserInput: UserInput
 
     private val aValidDirectoryToSearchIn = "src/test/resources/search_for_files_in"

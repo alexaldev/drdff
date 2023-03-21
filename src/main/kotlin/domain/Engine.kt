@@ -6,6 +6,7 @@ import utils.HasObservers
 import utils.ListBackedObservable
 import utils.requireState
 import kotlin.time.ExperimentalTime
+import kotlin.time.TimedValue
 import kotlin.time.measureTimedValue
 
 typealias ResultHandler = (DrdffResult) -> Unit
@@ -62,26 +63,30 @@ class DrdffEngine private constructor(
 
         requireEngineIdleness()
 
-        var searchForSize: Int
+        val (resultSetAndCheckSized, elapsed) = computeDifferences(input)
 
-        val (res, elapsed) = measureTimedValue {
-
-            val (searchFor, searchIn) = extractSearchPairFrom(input)
-            searchForSize = searchFor.size
-
-            updateStateTo(State.ResolvingDifferences)
-            searchFor.includedOnlyInSelf(searchIn)
-        }
+        val (resultSet, checkedSize) = resultSetAndCheckSized
 
         resultHandler(
             DrdffResult(
-                missingFilenames = res.sorted().toSet(),
-                percentageMissing = ((res.size.toFloat() / searchForSize.toFloat()) * 100),
+                missingFilenames = resultSet.sorted().toSet(),
+                percentageMissing = ((resultSet.size.toFloat() / checkedSize.toFloat()) * 100),
                 duration = elapsed.inWholeMilliseconds,
                 directoriesCompared = input.toString()
             )
         )
         updateStateTo(State.Idle)
+    }
+
+    @OptIn(ExperimentalTime::class)
+    private fun computeDifferences(userInput: UserInput): TimedValue<Pair<Set<String>, Int>> {
+        return measureTimedValue {
+            val (searchFor, searchIn) = extractSearchPairFrom(userInput)
+
+            updateStateTo(State.ResolvingDifferences)
+
+            Pair(searchFor.includedOnlyInSelf(searchIn), searchFor.size)
+        }
     }
 
     private fun extractSearchPairFrom(input: UserInput): Pair<Set<String>, Set<String>> {
@@ -101,42 +106,5 @@ class DrdffEngine private constructor(
 
     private fun requireEngineIdleness() {
         requireState(this.state == State.Idle) { "An operation is already running, cannot execute more." }
-    }
-}
-
-data class DrdffResult(
-    val directoriesCompared: String,
-    val missingFilenames: Set<String>,
-    val percentageMissing: Float,
-    val duration: Long
-) {
-    override fun toString() = "$missingFilenames\n| " +
-            "%.2f".format(percentageMissing) + "%\n" +
-            "${duration}ms"
-}
-
-typealias FileExtensions = MutableList<String>
-
-class EngineConfig private constructor() {
-
-    private val extensions: FileExtensions = mutableListOf()
-    var directoryResolver: DirectoryResolver = NativeDirectoryResolver()
-
-    fun setExtensions(extensions: Collection<String>) {
-        this.extensions.clear()
-        this.extensions.addAll(extensions)
-    }
-
-    companion object {
-        fun default() = EngineConfig()
-
-        @Deprecated("Use config() builder function instead.")
-        fun withResolver(resolver: DirectoryResolver) = config { directoryResolver = resolver }
-
-        fun config(init: EngineConfig.() -> Unit): EngineConfig {
-            val result = EngineConfig()
-            result.init()
-            return result
-        }
     }
 }
