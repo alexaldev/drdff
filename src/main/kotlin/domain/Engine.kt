@@ -63,9 +63,9 @@ class DrdffEngine private constructor(
 
         requireEngineIdleness()
 
-        val (resultSetAndCheckSized, elapsed) = computeDifferences(input)
+        val (resultSetAndCheckedSize, elapsed) = computeDifferences(input)
 
-        val (resultSet, checkedSize) = resultSetAndCheckSized
+        val (resultSet, checkedSize) = resultSetAndCheckedSize
 
         resultHandler(
             DrdffResult(
