@@ -56,6 +56,45 @@ class EngineTests {
     }
 
     @Test
+    fun `engine can have its directory resolution algorithm injected`() {
+
+        val fakeUserInput = UserInput(aValidDirectoryToSearchFrom, aValidDirectoryToSearchIn)
+        val mockResolver: DirectoryResolver = mockk()
+        val fakeConfig = EngineConfig.config {
+            this.directoryResolver = mockResolver
+        }
+
+        every { mockResolver.getContents(any()) } returns emptySet()
+
+        DrdffEngine
+            .with(fakeConfig)
+            .compute(fakeUserInput) {}
+
+        verify {
+            mockResolver.getContents(aValidDirectoryToSearchFrom)
+        }
+    }
+
+    @Test
+    fun `engine can have its sets difference algorithm injected`() {
+        val fakeUserInput = UserInput(aValidDirectoryToSearchFrom, aValidDirectoryToSearchIn)
+        val mockSetsOperations: SetsOperations = mockk<ByIntersectOperation>()
+        val fakeConfig = EngineConfig.config {
+            this.setsOperations = mockSetsOperations
+        }
+
+        every { mockSetsOperations.includedOnlyInSelf(ofType(Set::class), ofType(Set::class)) } returns emptySet()
+
+        DrdffEngine
+            .with(fakeConfig)
+            .compute(fakeUserInput) {}
+
+        verify {
+            mockSetsOperations.includedOnlyInSelf(ofType(Set::class), ofType(Set::class))
+        }
+    }
+
+    @Test
     fun `engine can be configured to search specific file extensions`() {
 
         val fakeUserInput = UserInput(aValidDirectoryToSearchFrom, aValidDirectoryToSearchIn)
