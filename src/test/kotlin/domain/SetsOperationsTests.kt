@@ -1,33 +1,36 @@
 package domain
 
-import utils.isEven
-import utils.isOdd
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.DynamicTest
+import org.junit.jupiter.api.TestFactory
+import kotlin.test.BeforeTest
+import kotlin.test.assertEquals
 
 class SetsOperationsTests {
 
+    private lateinit var testAlgorithm: SetsOperations
+
+    @BeforeTest
     fun setUp() {
-        TODO()
+        testAlgorithm = ByIntersectOperation()
     }
 
-    fun oneMillion(): Set<Int> {
-        return (0..1_000_000)
-            .fold(mutableSetOf()) { acc, i -> acc.add(i); acc }
+    @TestFactory
+    @DisplayName("Non overlapping sets results in the whole first set")
+    fun nonOverlappingSets() = listOf(
+        setOf(1, 2) to setOf(3, 4),
+        K1000_2000 to K3000_4000
+    ).map { (first, second) ->
+        DynamicTest.dynamicTest("Set of $first and set of $second do not overlap") {
+            assertEquals(first, testAlgorithm.includedOnlyInSelf(first, second))
+        }
     }
 
-    fun evensUpToOneMillion(): Set<Int> {
-        return (0..1_000_000)
-            .filter { it.isEven }
-            .fold(mutableSetOf()) { acc, i -> acc.addAndReturnSelf(i) }
-    }
+    private val K1000_2000 = oneThousandToTwoThousand()
+    private val K3000_4000 = threeThousandToFourThousand()
 
-    fun oddsUpToOneMillion(): Set<Int> {
-        return (0..1_000_000)
-            .filter { it.isOdd }
-            .fold(mutableSetOf()) { acc, i -> acc.addAndReturnSelf(i) }
-    }
+    fun oneThousandToTwoThousand() =
+        (1_000..2_000).toSet()
 
-    fun <T : Any> MutableSet<T>.addAndReturnSelf(t: T): MutableSet<T> {
-        this += t
-        return this
-    }
+    fun threeThousandToFourThousand() = (3_000..4_000 step 2).toSet()
 }

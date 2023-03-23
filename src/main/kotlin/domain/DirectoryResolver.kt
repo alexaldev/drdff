@@ -7,6 +7,12 @@ import java.util.stream.Collectors
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.name
 
+enum class Resolver(val resolver: DirectoryResolver) {
+    Native(NativeDirectoryResolver()),
+    TreeWalk(KotlinDirectoryResolver()),
+    PathList(KotlinPathListEntriesResolver())
+}
+
 fun interface DirectoryResolver {
     fun getContents(directory: String): Set<String>
 }

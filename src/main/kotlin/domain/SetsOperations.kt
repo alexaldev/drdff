@@ -1,5 +1,10 @@
 package domain
 
+enum class SetOperation(val operation: SetsOperations) {
+    Intersect(ByIntersectOperation()),
+    Distinct(ByDistinctOperation())
+}
+
 interface SetsOperations {
     /**
      * Contract for a useful operation on sets required in this system.
@@ -20,6 +25,6 @@ class ByIntersectOperation : SetsOperations {
 
 class ByDistinctOperation : SetsOperations {
     override fun <T> includedOnlyInSelf(thisSet: Set<T>, other: Set<T>): Set<T> {
-        return thisSet.distinctBy { it !in other }.toSet()
+        return thisSet - (thisSet.distinctBy { it in other }).toSet()
     }
 }

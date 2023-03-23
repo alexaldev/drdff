@@ -5,7 +5,7 @@ import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.options.split
-import com.github.ajalt.clikt.parameters.types.choice
+import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.clikt.parameters.types.int
 import domain.*
 import utils.INTRO_MESSAGE
@@ -34,7 +34,7 @@ class CommandLineUI : CliktCommand() {
     private val threadsCount by option(
         "-t",
         "--threads",
-        help = "Specify the number of threads to run the application"
+        help = "NOT IMPLEMENTED Specify the number of threads to run the application"
     ).int()
         .default(1)
 
@@ -43,17 +43,15 @@ class CommandLineUI : CliktCommand() {
         help = "NOT IMPLEMENTED Specify the extensions of the files to be searched separated by comma(,)"
     ).split(",")
 
-    private val directoryResolver by option(
-        "-w",
-        "--directory-resolver",
-        help = "Algorithm used to extract the directory tree from the provided arguments"
-    ).choice("native", "treewalk", "pathlist").default("native")
-
     private val setsOperator by option(
         "-s",
-        "--set-difference",
         help = "Algorithm used to compute differences between two sets"
-    ).choice("intersect", "distinct").default("intersect")
+    ).enum<SetOperation>().default(SetOperation.Intersect)
+
+    private val directoryResolver by option(
+        "-ds",
+        help = "Algorithm used to extract the directory tree from the provided arguments"
+    ).enum<Resolver>(ignoreCase = true).default(Resolver.Native)
 
     override fun run() {
 
@@ -68,21 +66,13 @@ class CommandLineUI : CliktCommand() {
 
     private fun engineConfigFromArgs(): EngineConfig {
         return EngineConfig.config {
-            this.directoryResolver = mapResolverChoiceToDomain()
+            this.directoryResolver = this@CommandLineUI.directoryResolver.resolver
+            this.setsOperations = setsOperator.operation
         }
     }
 
     private fun userInputFromArgs(): UserInput {
         return UserInput(toSearchDirName, searchInDirName)
-    }
-
-    private fun mapResolverChoiceToDomain(): DirectoryResolver {
-        return when (directoryResolver) {
-            "native" -> NativeDirectoryResolver()
-            "treewalk" -> KotlinDirectoryResolver()
-            "pathlist" -> KotlinPathListEntriesResolver()
-            else -> NativeDirectoryResolver()
-        }
     }
 
     fun createResultPrinterBasedOnOptions(): ResultPrinter = resultsFileName?.let {
