@@ -65,7 +65,7 @@ class CommandLineUI : CliktCommand() {
     }
 
     private fun engineConfigFromArgs(): EngineConfig {
-        return EngineConfig.config {
+        return EngineConfig.builder {
             this.directoryResolver = this@CommandLineUI.directoryResolver.resolver
             this.setsOperations = setsOperator.operation
         }

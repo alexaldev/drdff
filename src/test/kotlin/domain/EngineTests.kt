@@ -60,7 +60,7 @@ class EngineTests {
 
         val fakeUserInput = UserInput(aValidDirectoryToSearchFrom, aValidDirectoryToSearchIn)
         val mockResolver: DirectoryResolver = mockk()
-        val fakeConfig = EngineConfig.config {
+        val fakeConfig = EngineConfig.builder {
             this.directoryResolver = mockResolver
         }
 
@@ -79,7 +79,7 @@ class EngineTests {
     fun `engine can have its sets difference algorithm injected`() {
         val fakeUserInput = UserInput(aValidDirectoryToSearchFrom, aValidDirectoryToSearchIn)
         val mockSetsOperations: SetsOperations = mockk<ByIntersectOperation>()
-        val fakeConfig = EngineConfig.config {
+        val fakeConfig = EngineConfig.builder {
             this.setsOperations = mockSetsOperations
         }
 
@@ -112,7 +112,7 @@ class EngineTests {
         )
         every { directoryResolver.getContents(aValidDirectoryToSearchIn) } returns setOf("1.jpg", "4", "3")
 
-        val fakeConfig = EngineConfig.config {
+        val fakeConfig = EngineConfig.builder {
             setExtensions(fakeExtensions)
             this.directoryResolver = directoryResolver
         }
