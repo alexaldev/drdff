@@ -25,11 +25,15 @@ dependencies {
 }
 
 java {
-    targetCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_11
 }
 
 tasks.compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = "11"
+}
+
+tasks.compileTestKotlin {
+    kotlinOptions.jvmTarget = "11"
 }
 
 tasks.test {
@@ -59,13 +63,15 @@ sourceSets {
 }
 
 tasks.jar {
-    manifest.attributes["Main-Class"] = "DriverKt"
-    val dependencies = configurations
-        .runtimeClasspath
-        .get()
-        .map(::zipTree) // OR .map { zipTree(it) }
-    from(dependencies)
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    doLast {
+        manifest.attributes["Main-Class"] = "DriverKt"
+        val dependencies = configurations
+            .runtimeClasspath
+            .get()
+            .map(::zipTree)
+        from(dependencies)
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    }
 }
 
 tasks.register("generateVersionProperties") {
