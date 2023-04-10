@@ -5,7 +5,7 @@ typealias FileExtensions = MutableList<String>
 class EngineConfig private constructor() {
 
     private val extensions: FileExtensions = mutableListOf()
-    var directoryResolver: DirectoryResolver = NativeDirectoryResolver()
+    var directoryResolver: DirectoryResolver = KotlinTreeWalkResolver()
     var setsOperations: SetsOperations = ByIntersectOperation()
 
 

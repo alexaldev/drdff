@@ -19,8 +19,8 @@ class EngineTests {
     @Deprecated("Will be replaced with a mock object")
     private lateinit var fakeUserInput: UserInput
 
-    private val aValidDirectoryToSearchIn = "src/test/resources/search_for_files_in"
-    private val aValidDirectoryToSearchFrom = "src/test/resources/search_for_files_from"
+    private val aValidDirectoryToSearchIn = "src/test/resources/testSearchFor"
+    private val aValidDirectoryToSearchFrom = "src/test/resources/testSearchIn"
 
     @BeforeTest
     fun setUp() {
@@ -64,7 +64,7 @@ class EngineTests {
             this.directoryResolver = mockResolver
         }
 
-        every { mockResolver.getContents(any()) } returns emptySet()
+        every { mockResolver.getContents(any()) } returns ResolverResult(emptyMap())
 
         DrdffEngine
             .with(fakeConfig)
@@ -99,18 +99,28 @@ class EngineTests {
 
         val fakeUserInput = UserInput(aValidDirectoryToSearchFrom, aValidDirectoryToSearchIn)
         val fakeExtensions = listOf("jpg", "pdf")
-        val directoryResolver: DirectoryResolver = mockk<NativeDirectoryResolver>()
+        val directoryResolver: DirectoryResolver = mockk<KotlinTreeWalkResolver>()
 
-        every { directoryResolver.getContents(aValidDirectoryToSearchFrom) } returns setOf(
-            "1.jpg",
-            "2.pdf",
-            "3",
-            "4",
-            "5",
-            "happy",
-            "6.pdf"
-        )
-        every { directoryResolver.getContents(aValidDirectoryToSearchIn) } returns setOf("1.jpg", "4", "3")
+        every { directoryResolver.getContents(aValidDirectoryToSearchFrom) } returns
+                ResolverResult(
+                    mapOf(
+                        "1.jpg" to "1.jpg",
+                        "2.pdf" to "2.pdf",
+                        "3" to "3",
+                        "4" to "4",
+                        "5" to "5",
+                        "happy" to "happy",
+                        "6.pdf" to "6.pdf"
+                    )
+                )
+        every { directoryResolver.getContents(aValidDirectoryToSearchIn) } returns
+                ResolverResult(
+                    mapOf(
+                        "1.jpg" to "1.jpg",
+                        "4" to "4",
+                        "3" to "3"
+                    )
+                )
 
         val fakeConfig = EngineConfig.builder {
             setExtensions(fakeExtensions)

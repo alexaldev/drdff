@@ -9,7 +9,7 @@ import kotlin.time.TimedValue
 import kotlin.time.measureTimedValue
 
 typealias ResultHandler = (DrdffResult) -> Unit
-typealias EngineComputableArg = Pair<Set<String>, Set<String>>
+typealias EngineComputableArg = Pair<ResolverResult, ResolverResult>
 sealed class EngineArguments {
     class PureStringArgs(val s1: Set<String>, val s2: Set<String>) : EngineArguments()
 }
@@ -85,9 +85,10 @@ class DrdffEngine private constructor(
 
             updateStateTo(State.ResolvingDifferences)
 
-            val output = setsOperator.includedOnlyInSelf(searchFor, searchIn)
+            val output =
+                setsOperator.includedOnlyInSelf(searchFor.namesToAbsolutePath.keys, searchIn.namesToAbsolutePath.keys)
 
-            Pair(output, searchFor.size)
+            Pair(output, searchFor.namesToAbsolutePath.size)
         }
     }
 

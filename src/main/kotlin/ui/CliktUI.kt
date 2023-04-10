@@ -51,7 +51,7 @@ class CommandLineUI : CliktCommand() {
     private val directoryResolver by option(
         "-ds",
         help = "Algorithm used to extract the directory tree from the provided arguments"
-    ).enum<Resolver>(ignoreCase = true).default(Resolver.Native)
+    ).enum<Resolver>(ignoreCase = true).default(Resolver.TreeWalk)
 
     override fun run() {
 

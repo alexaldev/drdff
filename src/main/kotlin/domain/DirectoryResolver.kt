@@ -1,44 +1,37 @@
 package domain
 
 import java.io.File
-import java.nio.file.Files
 import java.nio.file.Paths
-import java.util.stream.Collectors
+import kotlin.io.path.absolutePathString
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.name
 
 enum class Resolver(val resolver: DirectoryResolver) {
-    Native(NativeDirectoryResolver()),
-    TreeWalk(KotlinDirectoryResolver()),
+    TreeWalk(KotlinTreeWalkResolver()),
+
+    @Deprecated("Underlying algo not working")
     PathList(KotlinPathListEntriesResolver())
 }
 
 fun interface DirectoryResolver {
-    fun getContents(directory: String): Set<String>
+    fun getContents(directory: String): ResolverResult
 }
 
-class NativeDirectoryResolver : DirectoryResolver {
-    override fun getContents(directory: String): Set<String> {
-        return Files.walk(Paths.get(directory))
-            .map { it.name }
-            .collect(Collectors.toSet())
-    }
-}
-
-class KotlinDirectoryResolver : DirectoryResolver {
-    override fun getContents(directory: String): Set<String> {
-        return File(directory)
+class KotlinTreeWalkResolver : DirectoryResolver {
+    override fun getContents(directory: String): ResolverResult {
+        return ResolverResult(File(directory)
             .walkBottomUp()
-            .map { it.name }
-            .toCollection(mutableSetOf())
+            .filterNot { it.isDirectory }
+            .associate { it.name to it.absolutePath })
     }
 }
 
+@Deprecated("Does not compute. Will be removed")
 class KotlinPathListEntriesResolver : DirectoryResolver {
-    override fun getContents(directory: String): Set<String> {
-        return Paths.get(directory)
+    override fun getContents(directory: String): ResolverResult {
+        return ResolverResult(Paths.get(directory)
+
             .listDirectoryEntries()
-            .map { it.name }
-            .toSet()
+            .associate { it.name to it.absolutePathString() })
     }
 }
