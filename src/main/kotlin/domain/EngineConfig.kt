@@ -7,7 +7,7 @@ class EngineConfig private constructor() {
     private val extensions: FileExtensions = mutableListOf()
     var directoryResolver: DirectoryResolver = KotlinTreeWalkResolver()
     var setsOperations: SetsOperations = ByIntersectOperation()
-
+    var resolverProgressListener: ProgressListener = ProgressListener {}
 
     fun setExtensions(extensions: Collection<String>) {
         this.extensions.clear()

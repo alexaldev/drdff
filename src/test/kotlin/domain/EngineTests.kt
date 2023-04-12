@@ -139,4 +139,30 @@ class EngineTests {
             directoryResolver.getContents(aValidDirectoryToSearchIn, null)
         }
     }
+
+    @Test
+    fun `Engine can have a ProgressListener for filenames resolution injected via its configuration`() {
+        val testResolverListener = ProgressListener { it }
+
+        val fakeConfig = EngineConfig.builder {
+            this.resolverProgressListener = testResolverListener
+        }
+
+        DrdffEngine.with(fakeConfig)
+    }
+
+    @Test
+    fun `DirectoryResolver ProgressListener reports the running percentage progress as an Integer`() {
+
+        val fakeConfig: EngineConfig = mockk()
+        var testProgress = 0
+        every { fakeConfig.resolverProgressListener } returns ProgressListener { testProgress = it }
+        every { fakeConfig.directoryResolver } returns KotlinTreeWalkResolver()
+        every { fakeConfig.setsOperations } returns ByIntersectOperation()
+
+        val testEngine = DrdffEngine.with(fakeConfig)
+        testEngine.compute(fakeUserInput) {}
+
+        assertEquals(100, testProgress)
+    }
 }
