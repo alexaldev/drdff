@@ -51,15 +51,14 @@ sourceSets {
 }
 
 tasks.jar {
-    doLast {
-        manifest.attributes["Main-Class"] = "DriverKt"
-        val dependencies = configurations
-            .runtimeClasspath
-            .get()
-            .map(::zipTree)
-        from(dependencies)
-        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    }
+    manifest.attributes["Main-Class"] = "DriverKt"
+    val dependencies = configurations
+        .runtimeClasspath
+        .get()
+        .map(::zipTree)
+    from(dependencies)
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
 }
 
 tasks.register("generateVersionProperties") {
