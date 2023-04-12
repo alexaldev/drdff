@@ -88,7 +88,7 @@ class DrdffEngine private constructor(
             val output =
                 setsOperator.includedOnlyInSelf(searchFor.namesToAbsolutePath.keys, searchIn.namesToAbsolutePath.keys)
 
-            Pair(output, searchFor.namesToAbsolutePath.size)
+            Pair(output.map { searchFor.namesToAbsolutePath[it]!! }.toSet(), searchFor.namesToAbsolutePath.size)
         }
     }
 
