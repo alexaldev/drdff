@@ -94,8 +94,8 @@ class DrdffEngine private constructor(
 
     private fun extractSearchPairFrom(input: UserInput): EngineComputableArg {
         updateStateTo(State.ResolvingDirectories(input.d1))
-        val searchFor = directoryResolver.getContents(input.d1)
-        val searchIn = directoryResolver.getContents(input.d2)
+        val searchFor = directoryResolver.getContents(input.d1, null)
+        val searchIn = directoryResolver.getContents(input.d2, null)
         return Pair(searchFor, searchIn)
     }
 

@@ -64,19 +64,20 @@ class EngineTests {
             this.directoryResolver = mockResolver
         }
 
-        every { mockResolver.getContents(any()) } returns ResolverResult(emptyMap())
+        every { mockResolver.getContents(any(), null) } returns ResolverResult(emptyMap())
 
         DrdffEngine
             .with(fakeConfig)
             .compute(fakeUserInput) {}
 
         verify {
-            mockResolver.getContents(aValidDirectoryToSearchFrom)
+            mockResolver.getContents(aValidDirectoryToSearchFrom, null)
         }
     }
 
     @Test
     fun `engine can have its sets difference algorithm injected`() {
+
         val fakeUserInput = UserInput(aValidDirectoryToSearchFrom, aValidDirectoryToSearchIn)
         val mockSetsOperations: SetsOperations = mockk<ByIntersectOperation>()
         val fakeConfig = EngineConfig.builder {
@@ -101,7 +102,7 @@ class EngineTests {
         val fakeExtensions = listOf("jpg", "pdf")
         val directoryResolver: DirectoryResolver = mockk<KotlinTreeWalkResolver>()
 
-        every { directoryResolver.getContents(aValidDirectoryToSearchFrom) } returns
+        every { directoryResolver.getContents(aValidDirectoryToSearchFrom, null) } returns
                 ResolverResult(
                     mapOf(
                         "1.jpg" to "1.jpg",
@@ -113,7 +114,7 @@ class EngineTests {
                         "6.pdf" to "6.pdf"
                     )
                 )
-        every { directoryResolver.getContents(aValidDirectoryToSearchIn) } returns
+        every { directoryResolver.getContents(aValidDirectoryToSearchIn, null) } returns
                 ResolverResult(
                     mapOf(
                         "1.jpg" to "1.jpg",
@@ -134,8 +135,8 @@ class EngineTests {
         }
 
         verify {
-            directoryResolver.getContents(aValidDirectoryToSearchFrom)
-            directoryResolver.getContents(aValidDirectoryToSearchIn)
+            directoryResolver.getContents(aValidDirectoryToSearchFrom, null)
+            directoryResolver.getContents(aValidDirectoryToSearchIn, null)
         }
     }
 }

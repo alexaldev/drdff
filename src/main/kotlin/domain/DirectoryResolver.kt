@@ -1,37 +1,41 @@
 package domain
 
 import java.io.File
-import java.nio.file.Paths
-import kotlin.io.path.absolutePathString
-import kotlin.io.path.listDirectoryEntries
-import kotlin.io.path.name
 
 enum class Resolver(val resolver: DirectoryResolver) {
     TreeWalk(KotlinTreeWalkResolver()),
-
-    @Deprecated("Underlying algo not working")
-    PathList(KotlinPathListEntriesResolver())
 }
 
 fun interface DirectoryResolver {
-    fun getContents(directory: String): ResolverResult
+    fun getContents(directory: String, progressListener: ProgressListener?): ResolverResult
+}
+
+fun interface ProgressListener {
+    fun onProgress(current: Int)
 }
 
 class KotlinTreeWalkResolver : DirectoryResolver {
-    override fun getContents(directory: String): ResolverResult {
-        return ResolverResult(File(directory)
+    override fun getContents(directory: String, progressListener: ProgressListener?): ResolverResult {
+
+        val f = File(directory)
+        val total = f
             .walkBottomUp()
             .filterNot { it.isDirectory }
-            .associate { it.name to it.absolutePath })
+            .count()
+
+        val result = f
+            .walkBottomUp()
+            .withIndex()
+            .filterNot { it.value.isDirectory }
+            .map { indexValue ->
+                (indexValue.value).also { progressListener?.onProgress(percentage((indexValue.index) + 1, total)) }
+            }
+            .associate { it.name to it.absolutePath }
+
+        return ResolverResult(result)
     }
-}
 
-@Deprecated("Does not compute. Will be removed")
-class KotlinPathListEntriesResolver : DirectoryResolver {
-    override fun getContents(directory: String): ResolverResult {
-        return ResolverResult(Paths.get(directory)
-
-            .listDirectoryEntries()
-            .associate { it.name to it.absolutePathString() })
+    fun percentage(current: Int, total: Int): Int {
+        return ((current.toFloat() * 100).div(total.toFloat())).toInt()
     }
 }
