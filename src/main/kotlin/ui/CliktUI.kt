@@ -13,7 +13,9 @@ import utils.Project
 import utils.logger
 import kotlin.io.path.Path
 
-class CommandLineUI : CliktCommand() {
+class CommandLineUI : CliktCommand(
+    name = Project.name
+) {
 
     private val logger by logger(Project.name)
 
@@ -68,6 +70,9 @@ class CommandLineUI : CliktCommand() {
         return EngineConfig.builder {
             this.directoryResolver = this@CommandLineUI.directoryResolver.resolver
             this.setsOperations = setsOperator.operation
+            this.resolverProgressListener = ProgressListener {
+                if (it % 10 == 0) logger.info { "Progress: ${it}%" }
+            }
         }
     }
 

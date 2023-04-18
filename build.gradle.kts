@@ -11,7 +11,7 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
-    testImplementation("io.mockk:mockk:1.13.4")
+    testImplementation("io.mockk:mockk:1.13.5")
 
     implementation("com.github.ajalt.clikt:clikt:3.5.2")
 
