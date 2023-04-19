@@ -4,14 +4,12 @@ import domain.*
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
-@Execution(ExecutionMode.CONCURRENT)
+//@Execution(ExecutionMode.CONCURRENT)
 class EngineTests {
 
     private lateinit var testEngine: DrdffEngine
@@ -76,46 +74,57 @@ class EngineTests {
     }
 
     @Test
-    fun `engine can be configured to search specific file extensions`() {
+    fun `Engine can be configured with extra post-filtering properties for the ResolverResults`() {
+        val fakeConfig = EngineConfig.builder {
+            this.postFilters += FilenameExtensionFilter("jpg")
+            this.postFilters += FilenameExtensionFilter("pdf")
+        }
+        DrdffEngine.with(fakeConfig)
+    }
 
-        val fakeUserInput: UserInput = mockk()
-        val fakeExtensions = listOf("jpg", "pdf")
-        val directoryResolver = mockk<KotlinTreeWalkResolver>(relaxed = true)
+    @Test
+    fun `Engine reports filenames with specific extensions when there are configured ones`() {
 
-        every { fakeUserInput.d1 } returns ""
-        every { fakeUserInput.d2 } returns ""
+        val fakeInput = UserInput(aValidDirectoryToSearchFrom, aValidDirectoryToSearchIn)
+//        every { mockInput.d1 } returns aValidDirectoryToSearchIn
+//        every { mockInput.d2 } returns aValidDirectoryToSearchFrom
 
-        every { directoryResolver.getContents(any(), mockk()) } returns
+        val mockResolver: DirectoryResolver = mockk(relaxed = true)
+        every { mockResolver.getContents(fakeInput.d1, any()) } returns
                 ResolverResult(
                     mapOf(
                         "1.jpg" to "1.jpg",
-                        "2.pdf" to "2.pdf",
+                        "2.txt" to "2.txt",
                         "3" to "3",
-                        "4" to "4",
-                        "5" to "5",
-                        "happy" to "happy",
-                        "6.pdf" to "6.pdf"
+                        "4.pdf" to "4.pdf",
+                        "5" to "5"
                     )
                 )
-
-        every { directoryResolver.getContents(any(), mockk()) } returns
+        every { mockResolver.getContents(fakeInput.d2, any()) } returns
                 ResolverResult(
                     mapOf(
-                        "1.jpg" to "1.jpg",
-                        "4" to "4",
-                        "3" to "3"
+                        "1.jpg" to "full/1.jpg",
+                        "2" to "full/2",
+                        "5.jpg" to "full/5.jpg"
                     )
                 )
+        val fakeJpegFilter = FilenameExtensionFilter("jpg")
+        val fakeTxtFilter = FilenameExtensionFilter("txt")
 
         val fakeConfig = EngineConfig.builder {
-            setExtensions(fakeExtensions)
-            this.directoryResolver = directoryResolver
+            this.directoryResolver = mockResolver
+            this.postFilters += fakeJpegFilter
+            this.postFilters += fakeTxtFilter
         }
+        val testEngine = DrdffEngine.with(fakeConfig)
 
-        testEngine = DrdffEngine.with(fakeConfig)
-
-        testEngine.compute(fakeUserInput) {
-            assertEquals(setOf("2.pdf", "6.pdf"), it.missingFilenames)
+        testEngine.compute(fakeInput) {
+            assertEquals(
+                setOf(
+                    "2.txt",
+                    "4.pdf"
+                ), it.missingFilenames
+            )
         }
     }
 
@@ -138,6 +147,7 @@ class EngineTests {
         every { fakeConfig.resolverProgressListener } returns ProgressListener { testProgress = it }
         every { fakeConfig.directoryResolver } returns KotlinTreeWalkResolver()
         every { fakeConfig.setsOperations } returns ByIntersectOperation()
+        every { fakeConfig.postFilters } returns mutableListOf()
 
         val testEngine = DrdffEngine.with(fakeConfig)
         testEngine.compute(fakeUserInput) {}

@@ -4,15 +4,10 @@ typealias FileExtensions = MutableList<String>
 
 class EngineConfig private constructor() {
 
-    private val extensions: FileExtensions = mutableListOf()
     var directoryResolver: DirectoryResolver = KotlinTreeWalkResolver()
     var setsOperations: SetsOperations = ByIntersectOperation()
     var resolverProgressListener: ProgressListener = ProgressListener {}
-
-    fun setExtensions(extensions: Collection<String>) {
-        this.extensions.clear()
-        this.extensions.addAll(extensions)
-    }
+    val postFilters = mutableListOf<ResolverResultFilter>()
 
     companion object {
         fun default() = EngineConfig()
@@ -20,6 +15,14 @@ class EngineConfig private constructor() {
         @Deprecated("Use config() builder function instead.")
         fun withResolver(resolver: DirectoryResolver) = builder { directoryResolver = resolver }
 
+        /**
+         * Builder function to create a new [EngineConfig].
+         * You can specify the following properties:
+         * - [directoryResolver] : The [DirectoryResolver] to use, default [KotlinTreeWalkResolver]
+         * - [setsOperations]: The [SetsOperations] to use, default [ByIntersectOperation]
+         * - [resolverProgressListener]: The [ProgressListener] which reports resolution progress, default null
+         * - [postFilters]: You can populate a list of [ResolverResultFilter], default is emptyList
+         */
         fun builder(init: EngineConfig.() -> Unit): EngineConfig {
             val result = EngineConfig()
             result.init()
