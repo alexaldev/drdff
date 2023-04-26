@@ -74,9 +74,6 @@ class CommandLineUI : CliktCommand(
         return EngineConfig.builder {
             this.directoryResolver = this@CommandLineUI.directoryResolver.resolver
             this.setsOperations = setsOperator.operation
-            this.resolverProgressListener = ProgressListener {
-                if (it % 10 == 0) logger.info { "Progress: ${it}%" }
-            }
         }
     }
 

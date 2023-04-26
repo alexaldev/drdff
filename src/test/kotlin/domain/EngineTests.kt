@@ -74,20 +74,52 @@ class EngineTests {
     }
 
     @Test
-    fun `Engine can be configured with extra post-filtering properties for the ResolverResults`() {
+    fun `Engine checks all the data provided if no filter is provided`() {
+
+        val fakeInput = UserInput(aValidDirectoryToSearchFrom, aValidDirectoryToSearchIn)
+
+        val mockResolver: DirectoryResolver = mockk(relaxed = true)
+        every { mockResolver.getContents(fakeInput.d1, any()) } returns
+                ResolverResult(
+                    mapOf(
+                        "1.jpg" to "1.jpg",
+                        "2.txt" to "2.txt",
+                        "3" to "3",
+                        "4.pdf" to "4.pdf",
+                        "5" to "5"
+                    )
+                )
+        every { mockResolver.getContents(fakeInput.d2, any()) } returns
+                ResolverResult(
+                    mapOf(
+                        "1.jpg" to "full/1.jpg",
+                        "2" to "full/2",
+                        "5.jpg" to "full/5.jpg"
+                    )
+                )
+
         val fakeConfig = EngineConfig.builder {
-            this.postFilters += FilenameExtensionFilter("jpg")
-            this.postFilters += FilenameExtensionFilter("pdf")
+            this.directoryResolver = mockResolver
         }
-        DrdffEngine.with(fakeConfig)
+
+        val testEngine = DrdffEngine.with(fakeConfig)
+
+        testEngine.compute(fakeInput) {
+            assertEquals(
+                setOf(
+                    "2.txt",
+                    "3",
+                    "4.pdf",
+                    "5"
+                ), it.missingFilenames
+            )
+        }
     }
 
     @Test
     fun `Engine reports filenames with specific extensions when there are configured ones`() {
 
         val fakeInput = UserInput(aValidDirectoryToSearchFrom, aValidDirectoryToSearchIn)
-//        every { mockInput.d1 } returns aValidDirectoryToSearchIn
-//        every { mockInput.d2 } returns aValidDirectoryToSearchFrom
 
         val mockResolver: DirectoryResolver = mockk(relaxed = true)
         every { mockResolver.getContents(fakeInput.d1, any()) } returns

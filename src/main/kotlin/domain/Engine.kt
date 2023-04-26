@@ -104,6 +104,9 @@ class DrdffEngine private constructor(
     }
 
     private fun applyPostFiltersOn(resolverResult: ResolverResult): ResolverResult {
+
+        if (postFiltersAggregator.noFiltersAttached()) return resolverResult
+
         return resolverResult.copy(
             namesToAbsolutePath = resolverResult.namesToAbsolutePath.filterKeys { postFiltersAggregator.evaluates(it) }
         )
