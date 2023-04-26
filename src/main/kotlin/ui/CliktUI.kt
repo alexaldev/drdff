@@ -46,7 +46,7 @@ class CommandLineUI : CliktCommand(
 
     private val filenameExtensions by option(
         "-x",
-        help = "NOT IMPLEMENTED Specify the extensions of the files to be searched separated by comma(,)"
+        help = "Specify the extensions of the files to be searched separated by comma(,)"
     ).split(",")
 
     private val setsOperator by option(
@@ -74,6 +74,7 @@ class CommandLineUI : CliktCommand(
         return EngineConfig.builder {
             this.directoryResolver = this@CommandLineUI.directoryResolver.resolver
             this.setsOperations = setsOperator.operation
+            this.postFilters.addAll(extensionFiltersFromArgs())
         }
     }
 
@@ -81,7 +82,11 @@ class CommandLineUI : CliktCommand(
         return UserInput(toSearchDirName, searchInDirName)
     }
 
-    fun createResultPrinterBasedOnOptions(): ResultPrinter = resultsFileName?.let {
+    private fun extensionFiltersFromArgs(): List<ResultFileNameFilter> {
+        return filenameExtensions?.map { FilenameExtensionFilter(it) } ?: emptyList()
+    }
+
+    private fun createResultPrinterBasedOnOptions(): ResultPrinter = resultsFileName?.let {
         return ResultPrinter.FileResultPrinter(
             resultFilePath = Path(it),
         )
