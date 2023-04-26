@@ -1,13 +1,11 @@
 package domain
 
-typealias FileExtensions = MutableList<String>
-
 class EngineConfig private constructor() {
 
     var directoryResolver: DirectoryResolver = KotlinTreeWalkResolver()
     var setsOperations: SetsOperations = ByIntersectOperation()
     var resolverProgressListener: ProgressListener = ProgressListener {}
-    val postFilters = mutableListOf<ResolverResultFilter>()
+    val postFilters = mutableListOf<ResultFileNameFilter>()
 
     companion object {
         fun default() = EngineConfig()
@@ -21,7 +19,7 @@ class EngineConfig private constructor() {
          * - [directoryResolver] : The [DirectoryResolver] to use, default [KotlinTreeWalkResolver]
          * - [setsOperations]: The [SetsOperations] to use, default [ByIntersectOperation]
          * - [resolverProgressListener]: The [ProgressListener] which reports resolution progress, default null
-         * - [postFilters]: You can populate a list of [ResolverResultFilter], default is emptyList
+         * - [postFilters]: You can populate a list of [ResultFileNameFilter], default is emptyList
          */
         fun builder(init: EngineConfig.() -> Unit): EngineConfig {
             val result = EngineConfig()

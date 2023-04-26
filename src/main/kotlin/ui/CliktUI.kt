@@ -31,7 +31,11 @@ class CommandLineUI : CliktCommand(
         help = "Directory to search the files found in specified directory"
     ).required()
 
-    private val resultsFileName by option("-o", "--results", help = "Filename to store the results")
+    private val resultsFileName by option(
+        "-o",
+        "--results",
+        help = "Filename to store the results"
+    )
 
     private val threadsCount by option(
         "-t",

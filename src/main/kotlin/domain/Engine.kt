@@ -19,17 +19,18 @@ class DrdffEngine private constructor(
     private val listBackedObservable: ListBackedObservable<State, (State) -> Unit> = ListBackedObservable()
 ) : HasObservers<(State) -> Unit> by listBackedObservable {
 
-    private val directoryResolver = config.directoryResolver
-    private val setsOperator: SetsOperations = config.setsOperations
-
     companion object {
 
-        fun default() = DrdffEngine(EngineConfig.default())
+        fun noConfig() = DrdffEngine(EngineConfig.default())
 
         fun with(config: EngineConfig): DrdffEngine {
             return DrdffEngine(config)
         }
     }
+
+    private val directoryResolver = config.directoryResolver
+    private val setsOperator: SetsOperations = config.setsOperations
+    private val postFiltersAggregator = ListOrFilter(config.postFilters)
 
     var state: State = State.Idle
         set(value) {
@@ -96,19 +97,16 @@ class DrdffEngine private constructor(
 
         updateStateTo(State.ResolvingDirectories(input.d1))
 
-        val searchFor = config.postFilters.fold(
-            directoryResolver.getContents(input.d1, config.resolverProgressListener)
-        ) { acc: ResolverResult, resolverResultFilter: ResolverResultFilter ->
-            resolverResultFilter.apply(acc)
-        }
-
-        val searchIn = config.postFilters.fold(
-            directoryResolver.getContents(input.d2, config.resolverProgressListener)
-        ) { acc: ResolverResult, resolverResultFilter: ResolverResultFilter ->
-            resolverResultFilter.apply(acc)
-        }
+        val searchFor = applyPostFiltersOn(directoryResolver.getContents(input.d1, config.resolverProgressListener))
+        val searchIn = applyPostFiltersOn(directoryResolver.getContents(input.d2, config.resolverProgressListener))
 
         return Pair(searchFor, searchIn)
+    }
+
+    private fun applyPostFiltersOn(resolverResult: ResolverResult): ResolverResult {
+        return resolverResult.copy(
+            namesToAbsolutePath = resolverResult.namesToAbsolutePath.filterKeys { postFiltersAggregator.evaluates(it) }
+        )
     }
 
     fun shutdown() {

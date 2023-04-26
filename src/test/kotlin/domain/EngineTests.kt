@@ -49,7 +49,7 @@ class EngineTests {
 
     @Test
     fun `engine is in indle state when initialized`() {
-        testEngine = DrdffEngine.default()
+        testEngine = DrdffEngine.noConfig()
         assertEquals(State.Idle, testEngine.state)
     }
 
@@ -110,11 +110,13 @@ class EngineTests {
                 )
         val fakeJpegFilter = FilenameExtensionFilter("jpg")
         val fakeTxtFilter = FilenameExtensionFilter("txt")
+        val fakePdfFilter = FilenameExtensionFilter("pdf")
 
         val fakeConfig = EngineConfig.builder {
             this.directoryResolver = mockResolver
             this.postFilters += fakeJpegFilter
             this.postFilters += fakeTxtFilter
+            this.postFilters += fakePdfFilter
         }
         val testEngine = DrdffEngine.with(fakeConfig)
 
