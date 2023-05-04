@@ -75,6 +75,9 @@ class CommandLineUI : CliktCommand(
             this.directoryResolver = this@CommandLineUI.directoryResolver.resolver
             this.setsOperations = setsOperator.operation
             this.postFilters.addAll(extensionFiltersFromArgs())
+            this.resolverProgressListener = ProgressListener {
+                if (it % 10 == 0) logger.info { "$it%" }
+            }
         }
     }
 
