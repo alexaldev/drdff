@@ -44,6 +44,16 @@ java -jar drdrff.jar -d /media/me/backup1 -i /media/me/backup2 -o /home/me/backu
 
 This command compares the contents of `/media/me/backup1` and `/media/me/backup2`, and writes the results to `/home/me/backup1MissingFromBackup2.txt`. The output contains useful information like the percentage of files missing and the paths of the missing files.
 
+## Future Plans:
+
+- Improve performance by implementing multi-threading for directory resolution and differences computation.
+
+- Add an option for printing the results to stdout in addition to writing them to a file.
+
+By implementing multi-threading, the program will be able to make better use of available system resources, resulting in faster execution times for large directories.
+
+Adding an option to print results to stdout will provide users with greater flexibility in how they interact with the program, and allow them to easily incorporate it into larger scripts or workflows.
+
 ## Contributions
 
 Contributions to `drdff` are welcome! If you encounter any bugs or have suggestions for improving the program, please open an issue or submit a pull request.
