@@ -65,15 +65,16 @@ sealed class ResultPrinter {
 
         private val dateProvider = DateProvider()
         override fun printResult(result: DrdffResult) {
-            logger.info {
-                with(StringBuilder()) {
-                    this.appendLine("${dateProvider.createDate()}, Total duration: ${result.duration} ms")
-                    this.appendLine(result.directoriesCompared)
-                    this.appendLine("Percentage of files missing: ${"%.2f".format(result.percentageMissing)}%")
-                    this.appendLine("Here are the files not found")
-                    this.appendLine("------------------------------------")
-                    result.missingFilenames.forEach { missingFile -> this.appendLine(missingFile) }
-                }.toString()
+            with(StringBuilder()) {
+                this.appendLine("${dateProvider.createDate()}, Total duration: ${result.duration} ms")
+                this.appendLine(result.directoriesCompared)
+                this.appendLine("Percentage of files missing: ${"%.2f".format(result.percentageMissing)}%")
+                this.appendLine("Here are the files not found")
+                this.appendLine("------------------------------------")
+                result.missingFilenames.forEach { missingFile -> this.appendLine(missingFile) }
+
+                logger.info { this.toString() }
+
             }
         }
     }
