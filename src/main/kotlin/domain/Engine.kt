@@ -37,10 +37,6 @@ class DrdffEngine private constructor(
             listBackedObservable.triggerObservers(value)
         }
 
-    init {
-        state = State.Idle
-    }
-
     fun registerStateObserver(obs: (State) -> Unit) {
         listBackedObservable.subscribe(obs)
     }

@@ -59,15 +59,26 @@ class CommandLineUI : CliktCommand(
         help = "Algorithm used to extract the directory tree from the provided arguments"
     ).enum<Resolver>(ignoreCase = true).default(Resolver.TreeWalk)
 
+    private val engineStateObserver: (State) -> Unit = {
+        when (it) {
+            State.Idle -> logger.info { "Idle" }
+            State.ResolvingDifferences -> logger.info { "Resolving differences" }
+            is State.ResolvingDirectories -> logger.info { "Resolving directory: ${it.directory}" }
+        }
+    }
+
     override fun run() {
 
         logger.info { INTRO_MESSAGE }
 
-        DrdffEngine
+        val engine = DrdffEngine
             .with(engineConfigFromArgs())
-            .compute(userInputFromArgs()) { computeResult ->
-                createResultPrinterBasedOnOptions().printResult(computeResult)
-            }
+
+        engine.registerStateObserver(engineStateObserver)
+        engine.compute(userInputFromArgs()) { computeResult ->
+            createResultPrinterBasedOnOptions().printResult(computeResult)
+        }
+        engine.unregisterStateObserver(engineStateObserver)
     }
 
     private fun engineConfigFromArgs(): EngineConfig {
@@ -75,9 +86,6 @@ class CommandLineUI : CliktCommand(
             this.directoryResolver = this@CommandLineUI.directoryResolver.resolver
             this.setsOperations = setsOperator.operation
             this.postFilters.addAll(extensionFiltersFromArgs())
-            this.resolverProgressListener = ProgressListener {
-                if (it % 10 == 0) logger.info { "$it%" }
-            }
         }
     }
 
@@ -89,11 +97,13 @@ class CommandLineUI : CliktCommand(
         return filenameExtensions?.map { FilenameExtensionFilter(it) } ?: emptyList()
     }
 
-    private fun createResultPrinterBasedOnOptions(): ResultPrinter = resultsFileName?.let {
-        return ResultPrinter.FileResultPrinter(
-            resultFilePath = Path(it),
-        )
-    } ?: kotlin.run {
-        return ResultPrinter.StdOutResultPrinter(logger)
+    private fun createResultPrinterBasedOnOptions(): ResultPrinter {
+        resultsFileName?.let {
+            return ResultPrinter.FileResultPrinter(
+                resultFilePath = Path(it),
+            )
+        } ?: kotlin.run {
+            return ResultPrinter.StdOutResultPrinter(logger)
+        }
     }
 }

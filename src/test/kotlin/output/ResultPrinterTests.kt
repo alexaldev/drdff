@@ -3,10 +3,8 @@ package output
 import domain.*
 import utils.oneThousand
 import kotlin.io.path.Path
-import kotlin.io.path.exists
 import kotlin.test.BeforeTest
 import kotlin.test.Test
-import kotlin.test.assertTrue
 
 class ResultWritersTests {
 
@@ -22,12 +20,6 @@ class ResultWritersTests {
                 PropertiesVersionProvider()
             )
         )
-    }
-
-    @Test
-    fun `FileWriter writes results to a file with a header, computation date, percentage missing, directories compared and all the result set`() {
-//        testFilePrinter.printResult(fakeResult)
-//        assertTrue("Output file not created") { Path(outputFilePath).exists() }
     }
 
     @Test
